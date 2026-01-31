@@ -18,7 +18,7 @@
         }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 9999;
+            background: rgba(255,255,255,0.95); z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
     </style>
@@ -26,8 +26,13 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20 md:pb-0">
 
     <div id="loading" class="loading-overlay">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
-        <p class="text-slate-500 text-sm">正在連線至 Google 試算表...</p>
+        <div id="loading-spinner" class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
+        <p id="loading-text" class="text-slate-600 font-medium">正在載入雲端資料庫...</p>
+        <div id="error-msg" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm max-w-md mx-4">
+            <p class="font-bold mb-1">⚠️ 連線失敗</p>
+            <p id="error-detail"></p>
+            <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded-md text-xs">重新整理</button>
+        </div>
     </div>
 
     <!-- Header -->
@@ -72,10 +77,9 @@
                 <div class="chart-container"><canvas id="salaryChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                <h4 class="font-bold text-slate-700 mb-4 text-sm">試算表連線狀態</h4>
-                <div class="p-3 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed">
-                    <strong>雲端同步模式：</strong><br>
-                    目前的資料與您的 Google 試算表同步。所有的修改都會即時傳送至雲端儲存，確保跨裝置資料一致。
+                <h4 class="font-bold text-slate-700 mb-4 text-sm">雲端連線狀態</h4>
+                <div id="sync-status" class="p-3 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed">
+                    目前已連結至 Google 試算表。<br>修改後約需 1-2 秒處理時間。
                 </div>
             </div>
         </section>
@@ -121,8 +125,8 @@
     </div>
 
     <script>
-        // --- 設定：請將您的 Google Apps Script URL 貼在這裡 ---
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxRuzp9BFRKNmbUtH6RXQWfiV2aw-MKHJ86YJ9pz-AN5sjqZ3MJuPzp4aRr7R-gugMGhA/exec";
+        // --- ⚠️ 重要：請確保這裡貼入的是「部署」後獲得的「網頁應用程式 URL」 ---
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0DqRNUZUHZEj2gmqOZuLE645T-hsJF8j8jyhO9ShD6yKNWxf5zlXy_md_mrYVGBm-mg/exec";
 
         const CURRENT_YEAR = 2026;
         const CURRENT_MONTH = 1;
@@ -145,28 +149,62 @@
         // --- Data Interaction ---
         async function fetchStaffData() {
             if (GAS_WEB_APP_URL.includes("您的")) {
-                document.getElementById('loading').innerHTML = `<p class='text-red-500 p-4 text-center'>尚未設定 Google Apps Script URL。<br>請依照教學設定後，將網址貼入代碼中。</p>`;
+                showError("尚未填寫 GAS URL。請編輯 HTML 代碼，將您部署獲得的 URL 貼入 GAS_WEB_APP_URL 變數中。");
                 return;
             }
+
             try {
-                const response = await fetch(GAS_WEB_APP_URL);
-                staffData = await response.json();
+                const response = await fetch(GAS_WEB_APP_URL, { 
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
+                
+                const rawData = await response.json();
+                
+                // 確保讀取到的資料格式正確
+                staffData = Array.isArray(rawData) ? rawData : [];
+                
+                if (staffData.length === 0) {
+                    console.log("試算表為空，正在初始化預設資料...");
+                    await seedInitialData();
+                }
+
                 updateUI();
                 document.getElementById('loading').style.display = 'none';
             } catch (err) {
                 console.error("Fetch error:", err);
-                alert("無法從試算表讀取資料，請檢查 GAS 部署設定是否設為「所有人」。");
+                showError(`無法取得資料。請確認 GAS 部署為「所有人」且網址正確。<br>詳細錯誤: ${err.message}`);
             }
         }
 
-        async function saveMemberToCloud(id, data, action = "update") {
+        async function seedInitialData() {
+            const initialNames = ["黃遠志", "王永銓", "鄭棋云", "洪翊勛", "鄭仲翔", "范秋璇", "林彥廷", "邱逢甲", "劉軒菱", "蔡詠恩", "黃韻頻", "秦崇豪", "王芳芳", "張家寧", "張鳳臻", "黃祥有", "黃邦菊", "段宇", "王思恩", "林意瑄"];
+            for (const name of initialNames) {
+                const id = "ID_" + Math.random().toString(36).substr(2, 9);
+                const member = createNewMemberObject(name);
+                await saveMemberToCloud(id, member, "update", true);
+            }
+            location.reload(); // 重整以載入新產生的資料
+        }
+
+        async function saveMemberToCloud(id, data, action = "update", silent = false) {
             try {
+                // 更新 UI 狀態
+                const statusEl = document.getElementById('sync-status');
+                if (statusEl) {
+                    statusEl.innerText = "同步中...";
+                    statusEl.classList.replace('bg-emerald-50', 'bg-amber-50');
+                }
+
                 await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // 解決 CORS 問題
+                    mode: 'no-cors', 
                     body: JSON.stringify({ action, id, data })
                 });
-                // 因為 no-cors 無法取得 response，我們直接在本地端更新 UI
+
+                // 本地資料同步更新
                 if (action === "delete") {
                     staffData = staffData.filter(s => s.id !== id);
                 } else {
@@ -174,10 +212,26 @@
                     if (idx > -1) staffData[idx] = { ...staffData[idx], ...data };
                     else staffData.push({ id, ...data });
                 }
+
                 updateUI();
+
+                if (statusEl) {
+                    setTimeout(() => {
+                        statusEl.innerText = "同步完成。";
+                        statusEl.classList.replace('bg-amber-50', 'bg-emerald-50');
+                    }, 1000);
+                }
             } catch (err) {
                 console.error("Save error:", err);
+                if (!silent) alert("儲存失敗，請檢查網路或 GAS 設定。");
             }
+        }
+
+        function showError(msg) {
+            document.getElementById('loading-spinner').classList.add('hidden');
+            document.getElementById('loading-text').classList.add('hidden');
+            document.getElementById('error-msg').classList.remove('hidden');
+            document.getElementById('error-detail').innerHTML = msg;
         }
 
         function createNewMemberObject(name) {
@@ -391,7 +445,7 @@
         window.addNewStaff = () => {
             const name = prompt("請輸入新員工姓名：");
             if (name && name.trim()) {
-                const id = "ID_" + Date.now();
+                const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 saveMemberToCloud(id, createNewMemberObject(name.trim()), "update");
             }
         };
