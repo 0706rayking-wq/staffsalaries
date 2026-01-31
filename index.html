@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>廚房薪資考核管理系統 - 南港店</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .chart-container { position: relative; width: 100%; height: 300px; max-height: 350px; margin: 0 auto; }
+        .input-cell { transition: all 0.2s; }
+        .input-cell:hover { background: #f1f5f9; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        select { appearance: none; background-image: none; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <!-- Header & Navigation -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center font-bold text-xl">薪</div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">廚房薪資考核管理系統</h1>
+                    <p class="text-slate-400 text-xs">即時編輯、加給試算、下月薪資預測</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="addNewStaff()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm transition font-bold">＋ 新增員工</button>
+                <button onclick="exportCSV()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition">匯出報表</button>
+                <button onclick="resetSystem()" class="px-4 py-2 bg-red-900/50 hover:bg-red-800 rounded-lg text-sm transition">重置系統</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- KPI Summary Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">下月公開薪資總額</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-total-pay">$0</h3>
+                <p class="text-slate-400 text-xs mt-1">僅統計「正職」人員預估</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-emerald-500">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">下月預計平均薪資</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-avg-pay">$0</h3>
+                <p class="text-slate-400 text-xs mt-1" id="kpi-avg-count">基於 0 名正職</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-sky-500">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">考核加給達標</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-maxed">0</h3>
+                <p class="text-slate-400 text-xs mt-1">技能加給已達 $4,000 上限</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-amber-500">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">本月預計調薪人次</p>
+                <h3 class="text-3xl font-bold mt-2" id="kpi-adjustments">0</h3>
+                <p class="text-slate-400 text-xs mt-1">114年1月已生效件數</p>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h4 class="font-bold text-slate-700 mb-6 flex justify-between items-center">
+                    <span>下月預計薪資分佈圖 (僅正職)</span>
+                    <span class="text-xs font-normal text-slate-400 italic">*包含已生效加給</span>
+                </h4>
+                <div class="chart-container">
+                    <canvas id="salaryChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h4 class="font-bold text-slate-700 mb-6">調薪規則與加給參考</h4>
+                <div class="space-y-3">
+                    <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                        <p class="text-xs text-emerald-800 leading-relaxed font-medium">
+                            📅 <strong>調薪生效時間 (M+2)</strong>：<br>
+                            - 12月考過 → 2月調薪 (下月顯示)<br>
+                            - 1月考過 → 3月調薪 (下月不變)
+                        </p>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-600">
+                        <div class="flex justify-between border-b pb-1"><span>湯區</span><span class="font-bold">900</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>熟食一</span><span class="font-bold">700</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>熟食二</span><span class="font-bold">800</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>冷台</span><span class="font-bold">600</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>海鮮吧</span><span class="font-bold">600</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>蔬菜吧</span><span class="font-bold">400</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>輕食區</span><span class="font-bold">500</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>飲調區</span><span class="font-bold">400</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>甜點製作</span><span class="font-bold">300</span></div>
+                        <div class="flex justify-between border-b pb-1"><span>切肉區</span><span class="font-bold">200</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Editor Table -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-lg font-bold">員工薪資與考核編輯器</h2>
+                    <p class="text-xs text-slate-500 mt-1">當前基準：114年1月。系統會根據考核月份自動計算本月與「下月」的實領薪資。</p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto no-scrollbar">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                            <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名</th>
+                            <th class="px-4 py-4 w-44">職位 / 狀態項目</th>
+                            <th class="px-4 py-4 text-center">各區站考核日期 (年 / 月)</th>
+                            <th class="px-4 py-4 text-right w-32">加給彙整</th>
+                            <th class="px-4 py-4 text-right w-28">本月實領</th>
+                            <th class="px-4 py-4 text-right w-28 bg-emerald-50/30">下月預計</th>
+                            <th class="px-4 py-4 w-24 text-center">異動</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-table-body" class="divide-y divide-slate-100">
+                        <!-- Rows rendered via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 1. Constants ---
+        const CURRENT_YEAR = 2026; // 114年
+        const CURRENT_MONTH = 1;   // 1月
+        const BASE_SALARY = 36000;
+        const POSITIONS = ["正職", "副領班", "領班", "副主廚", "主廚", "行政副主廚", "計時人員"];
+        const LEADERSHIP_ROLES = ["副領班", "領班", "副主廚", "主廚", "行政副主廚"];
+        const YEARS = [2024, 2025, 2026];
+        const MONTHS = Array.from({length: 12}, (_, i) => i + 1);
+
+        const INITIAL_STAFF = [
+            "黃遠志", "王永銓", "鄭棋云", "洪翊勛", "鄭仲翔", "范秋璇", "林彥廷", "邱逢甲", 
+            "劉軒菱", "蔡詠恩", "黃韻頻", "秦崇豪", "王芳芳", "張家寧", "張鳳臻", "黃祥有", 
+            "黃邦菊", "段宇", "王思恩", "林意瑄"
+        ];
+        
+        const STATIONS = [
+            { id: 'soup', name: '湯區', val: 900 },
+            { id: 'cook1', name: '熟食一', val: 700 },
+            { id: 'cook2', name: '熟食二', val: 800 },
+            { id: 'cold', name: '冷台', val: 600 },
+            { id: 'sea', name: '海鮮吧', val: 600 },
+            { id: 'light', name: '輕食區', val: 500 },
+            { id: 'drink', name: '飲調', val: 400 },
+            { id: 'veg', name: '蔬菜吧', val: 400 },
+            { id: 'dessert', name: '甜點', val: 300 },
+            { id: 'meat', name: '切肉', val: 200 }
+        ];
+
+        // --- 2. State Management ---
+        let staffData = [];
+
+        function loadData() {
+            const saved = localStorage.getItem('kitchen_salary_v5');
+            if (saved) {
+                staffData = JSON.parse(saved);
+            } else {
+                staffData = INITIAL_STAFF.map(name => createNewMemberObject(name));
+                saveData();
+            }
+        }
+
+        function createNewMemberObject(name) {
+            return {
+                id: crypto.randomUUID(),
+                name: name,
+                pos: "正職",
+                fullDay: false,
+                mgr: false,
+                ga: false,
+                stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
+            };
+        }
+
+        function saveData() {
+            localStorage.setItem('kitchen_salary_v5', JSON.stringify(staffData));
+            updateUI();
+        }
+
+        function resetSystem() {
+            if (confirm("確定要重置系統嗎？資料將無法恢復。")) {
+                localStorage.removeItem('kitchen_salary_v5');
+                location.reload();
+            }
+        }
+
+        function addNewStaff() {
+            const name = prompt("請輸入新員工姓名：");
+            if (name && name.trim()) {
+                staffData.push(createNewMemberObject(name.trim()));
+                saveData();
+            }
+        }
+
+        // --- 3. Calculation Logic (M+2 Adjustments) ---
+        function calculateSalary(member) {
+            const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
+            
+            let fixedBonus = 0;
+            if (member.fullDay) fixedBonus += 4000;
+            if (member.mgr) fixedBonus += 500;
+            if (member.ga) fixedBonus += 1000;
+
+            let currentSkillSum = 0;
+            let nextSkillSum = 0;
+            let targetSkillSum = 0; // Total accumulation regardless of date
+            
+            const currentTotalMonths = CURRENT_YEAR * 12 + CURRENT_MONTH;
+            const nextTotalMonths = currentTotalMonths + 1;
+
+            STATIONS.forEach(s => {
+                const record = member.stations[s.id];
+                if (record && record.y && record.m) {
+                    const passTotalMonths = record.y * 12 + record.m;
+                    const effectiveMonths = passTotalMonths + 2; // M+2 Rule
+
+                    targetSkillSum += s.val;
+                    if (effectiveMonths <= currentTotalMonths) {
+                        currentSkillSum += s.val;
+                    }
+                    if (effectiveMonths <= nextTotalMonths) {
+                        nextSkillSum += s.val;
+                    }
+                }
+            });
+
+            // Capping at $4,000
+            const currentSkillBonus = Math.min(currentSkillSum, 4000);
+            const nextSkillBonus = Math.min(nextSkillSum, 4000);
+            const totalSkillAccumulated = Math.min(targetSkillSum, 4000);
+
+            const currentTotal = BASE_SALARY + fixedBonus + currentSkillBonus;
+            const nextTotal = BASE_SALARY + fixedBonus + nextSkillBonus;
+            
+            return { 
+                currentTotal, 
+                nextTotal, 
+                fixedBonus,
+                currentSkillBonus,
+                nextSkillBonus,
+                totalSkillAccumulated,
+                isPublic,
+                isIncreased: nextTotal > currentTotal
+            };
+        }
+
+        // --- 4. UI Rendering ---
+        let mainChart = null;
+
+        function updateUI() {
+            renderTable();
+            renderKPIs();
+            renderCharts();
+        }
+
+        function renderKPIs() {
+            let nextTotalPayroll = 0;
+            let maxedCount = 0;
+            let publicStaffCount = 0;
+            let adjustmentsCount = 0;
+
+            staffData.forEach(m => {
+                const res = calculateSalary(m);
+                if (res.isPublic) {
+                    nextTotalPayroll += res.nextTotal;
+                    publicStaffCount++;
+                }
+                if (res.totalSkillAccumulated >= 4000) maxedCount++;
+                if (res.isIncreased) adjustmentsCount++;
+            });
+
+            document.getElementById('kpi-total-pay').innerText = `$${nextTotalPayroll.toLocaleString()}`;
+            document.getElementById('kpi-avg-pay').innerText = publicStaffCount > 0 ? `$${Math.round(nextTotalPayroll / publicStaffCount).toLocaleString()}` : "$0";
+            document.getElementById('kpi-avg-count').innerText = `基於 ${publicStaffCount} 名正職預估`;
+            document.getElementById('kpi-maxed').innerText = maxedCount;
+            document.getElementById('kpi-adjustments').innerText = adjustmentsCount;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('staff-table-body');
+            tbody.innerHTML = '';
+
+            staffData.forEach((member, idx) => {
+                const res = calculateSalary(member);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+
+                tr.innerHTML = `
+                    <td class="px-4 py-4 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                        <div class="flex flex-col">
+                            <input type="text" value="${member.name}" onchange="updateMember(${idx}, 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
+                            <button onclick="deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 uppercase font-bold tracking-tighter">刪除成員</button>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4">
+                        <select onchange="updateMember(${idx}, 'pos', this.value)" class="text-xs font-bold text-slate-600 bg-slate-100 rounded px-1 py-1 mb-2 block w-full focus:ring-1 focus:ring-emerald-500 outline-none">
+                            ${POSITIONS.map(p => `<option value="${p}" ${member.pos === p ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="inline-flex items-center text-[10px] cursor-pointer text-slate-500">
+                                <input type="checkbox" ${member.fullDay ? 'checked' : ''} onchange="updateMember(${idx}, 'fullDay', this.checked)" class="rounded text-emerald-500 mr-1">全日
+                            </label>
+                            <label class="inline-flex items-center text-[10px] cursor-pointer text-slate-500">
+                                <input type="checkbox" ${member.mgr ? 'checked' : ''} onchange="updateMember(${idx}, 'mgr', this.checked)" class="rounded text-emerald-500 mr-1">區長
+                            </label>
+                            <label class="inline-flex items-center text-[10px] cursor-pointer text-slate-500">
+                                <input type="checkbox" ${member.ga ? 'checked' : ''} onchange="updateMember(${idx}, 'ga', this.checked)" class="rounded text-emerald-500 mr-1">工務
+                            </label>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-1.5 min-w-[380px]">
+                            ${STATIONS.map(s => {
+                                const record = member.stations[s.id];
+                                return `
+                                <div class="flex flex-col p-1 bg-slate-50/50 rounded border border-slate-100">
+                                    <span class="text-[8px] text-slate-400 font-bold uppercase truncate">${s.name}</span>
+                                    <div class="flex gap-0.5 mt-0.5">
+                                        <select onchange="updateStation(${idx}, '${s.id}', 'y', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
+                                            <option value="">年</option>
+                                            ${YEARS.map(y => `<option value="${y}" ${record.y == y ? 'selected' : ''}>${y}</option>`).join('')}
+                                        </select>
+                                        <select onchange="updateStation(${idx}, '${s.id}', 'm', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
+                                            <option value="">月</option>
+                                            ${MONTHS.map(m => `<option value="${m}" ${record.m == m ? 'selected' : ''}>${m}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-right">
+                        <div class="flex flex-col items-end">
+                            <div class="flex flex-wrap justify-end gap-0.5 mb-1">
+                                ${member.fullDay ? '<span class="px-1 bg-sky-100 text-sky-700 text-[9px] rounded font-bold">全日</span>' : ''}
+                                ${member.ga ? '<span class="px-1 bg-indigo-100 text-indigo-700 text-[9px] rounded font-bold">工務</span>' : ''}
+                                ${member.mgr ? '<span class="px-1 bg-amber-100 text-amber-700 text-[9px] rounded font-bold">區長</span>' : ''}
+                            </div>
+                            <span class="font-bold text-emerald-600">+$${(res.totalSkillAccumulated + res.fixedBonus).toLocaleString()}</span>
+                            <span class="text-[9px] text-slate-400">加給總計</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-right">
+                        ${res.isPublic ? `
+                            <span class="font-bold text-slate-700">$${res.currentTotal.toLocaleString()}</span>
+                        ` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
+                    </td>
+                    <td class="px-4 py-4 text-right bg-emerald-50/30">
+                        ${res.isPublic ? `
+                            <span class="font-bold text-slate-900 text-base">$${res.nextTotal.toLocaleString()}</span>
+                        ` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        ${res.isIncreased ? `
+                            <span class="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-700 font-bold">下月調薪</span>
+                        ` : `<span class="text-slate-300 text-[10px]">-</span>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCharts() {
+            const ctx = document.getElementById('salaryChart').getContext('2d');
+            const publicData = staffData
+                .map(s => ({ data: s, calc: calculateSalary(s) }))
+                .filter(item => item.calc.isPublic)
+                .sort((a, b) => b.calc.nextTotal - a.calc.nextTotal);
+            
+            const labels = publicData.map(item => item.data.name);
+            const nextSkillData = publicData.map(item => item.calc.nextSkillBonus + item.calc.fixedBonus);
+            const baseAndFixed = publicData.map(item => item.calc.nextTotal - (item.calc.nextSkillBonus + item.calc.fixedBonus));
+
+            if (mainChart) mainChart.destroy();
+
+            mainChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '所有加給 (預計)',
+                            data: nextSkillData,
+                            backgroundColor: '#10b981',
+                            borderRadius: 4
+                        },
+                        {
+                            label: '底薪',
+                            data: baseAndFixed,
+                            backgroundColor: '#e2e8f0',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
+                        y: { stacked: true, beginAtZero: false, min: 30000 }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        // --- 5. Handlers ---
+        function updateMember(idx, field, val) {
+            staffData[idx][field] = val;
+            saveData();
+        }
+
+        function updateStation(idx, stationId, type, val) {
+            const numVal = val === "" ? null : parseInt(val);
+            staffData[idx].stations[stationId][type] = numVal;
+            saveData();
+        }
+
+        function deleteMember(id) {
+            if (confirm("確定刪除？")) {
+                staffData = staffData.filter(m => m.id !== id);
+                saveData();
+            }
+        }
+
+        function exportCSV() {
+            let csv = "\uFEFF姓名,職位,加給總計,本月實領,下月預計\n";
+            staffData.forEach(m => {
+                const res = calculateSalary(m);
+                const cur = res.isPublic ? res.currentTotal : "不公開";
+                const nxt = res.isPublic ? res.nextTotal : "不公開";
+                csv += `${m.name},${m.pos},${res.totalSkillAccumulated + res.fixedBonus},${cur},${nxt}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `南港店廚房薪資表.csv`);
+            link.click();
+        }
+
+        window.onload = () => {
+            loadData();
+            updateUI();
+        };
+
+    </script>
+</body>
+</html>
