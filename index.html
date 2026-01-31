@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>廚房薪資考核管理系統 - 南港店</title>
+    <title>廚房薪資考核管理系統 - 南港店 (試算表同步版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -13,7 +13,6 @@
         .chart-container { position: relative; width: 100%; height: 260px; margin: 0 auto; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         select { cursor: pointer; }
-        /* Mobile optimization: hide certain elements on small screens */
         @media (max-width: 768px) {
             .desktop-only { display: none; }
         }
@@ -28,7 +27,7 @@
 
     <div id="loading" class="loading-overlay">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
-        <p class="text-slate-500 text-sm">正在連線雲端資料庫...</p>
+        <p class="text-slate-500 text-sm">正在連線至 Google 試算表...</p>
     </div>
 
     <!-- Header -->
@@ -40,14 +39,14 @@
             </div>
             <div class="flex gap-2">
                 <button onclick="addNewStaff()" class="p-2 bg-emerald-600 hover:bg-emerald-500 rounded text-sm transition font-bold">＋ 新增</button>
-                <button onclick="exportCSV()" class="p-2 bg-slate-700 rounded text-sm desktop-only">匯出</button>
+                <button onclick="exportCSV()" class="p-2 bg-slate-700 rounded text-sm desktop-only">匯出 CSV</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- KPI Cards (Horizontal Scroll on Mobile) -->
+        <!-- KPI Cards -->
         <section class="flex overflow-x-auto gap-4 pb-2 no-scrollbar snap-x">
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 snap-center">
                 <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">下月預計總支出</p>
@@ -62,26 +61,26 @@
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-maxed">0</h3>
             </div>
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-amber-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">本月預計調薪</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">下月預計調薪</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-adjustments">0</h3>
             </div>
         </section>
 
-        <!-- Charts (Hidden on narrow mobile, shown on tablets up) -->
+        <!-- Charts -->
         <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <div class="chart-container"><canvas id="salaryChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                <h4 class="font-bold text-slate-700 mb-4 text-sm">調薪時間提醒</h4>
+                <h4 class="font-bold text-slate-700 mb-4 text-sm">試算表連線狀態</h4>
                 <div class="p-3 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed">
-                    <strong>M+2 規則：</strong><br>
-                    考核通過後的第二個月調整薪資。系統已自動計算「下月」是否有薪資變動。
+                    <strong>雲端同步模式：</strong><br>
+                    目前的資料與您的 Google 試算表同步。所有的修改都會即時傳送至雲端儲存，確保跨裝置資料一致。
                 </div>
             </div>
         </section>
 
-        <!-- Staff List (Mobile View: Cards, Desktop View: Table) -->
+        <!-- Staff List -->
         <section class="bg-white md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h2 class="text-base font-bold">員工清單與考核狀態</h2>
@@ -97,7 +96,7 @@
                             <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名</th>
                             <th class="px-4 py-4 w-40">職位 / 狀態</th>
                             <th class="px-4 py-4 text-center">各區站考核 (年/月)</th>
-                            <th class="px-4 py-4 text-right w-28">加給累計</th>
+                            <th class="px-4 py-4 text-right w-32">加給彙整</th>
                             <th class="px-4 py-4 text-right w-24">本月實領</th>
                             <th class="px-4 py-4 text-right w-24 bg-emerald-50/30">下月預計</th>
                             <th class="px-4 py-4 w-20 text-center">異動</th>
@@ -121,29 +120,10 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script>
+        // --- 設定：請將您的 Google Apps Script URL 貼在這裡 ---
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxRuzp9BFRKNmbUtH6RXQWfiV2aw-MKHJ86YJ9pz-AN5sjqZ3MJuPzp4aRr7R-gugMGhA/exec";
 
-        // --- GitHub 部署設定指引 ---
-        // 當您在 GitHub 使用時，請將下面的 firebaseConfig 替換為您在 Firebase 控制台取得的內容
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "您的API_KEY",
-            authDomain: "您的專案.firebaseapp.com",
-            projectId: "您的專案ID",
-            storageBucket: "您的專案.appspot.com",
-            messagingSenderId: "您的發送者ID",
-            appId: "您的APP_ID"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kitchen-salary-mgr-production';
-
-        // --- Constants ---
         const CURRENT_YEAR = 2026;
         const CURRENT_MONTH = 1;
         const BASE_SALARY = 36000;
@@ -162,41 +142,43 @@
         let staffData = [];
         let mainChart = null;
 
-        // --- Auth & Data Fetching ---
-        const initApp = async () => {
+        // --- Data Interaction ---
+        async function fetchStaffData() {
+            if (GAS_WEB_APP_URL.includes("您的")) {
+                document.getElementById('loading').innerHTML = `<p class='text-red-500 p-4 text-center'>尚未設定 Google Apps Script URL。<br>請依照教學設定後，將網址貼入代碼中。</p>`;
+                return;
+            }
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                console.error("Auth Error", e);
+                const response = await fetch(GAS_WEB_APP_URL);
+                staffData = await response.json();
+                updateUI();
+                document.getElementById('loading').style.display = 'none';
+            } catch (err) {
+                console.error("Fetch error:", err);
+                alert("無法從試算表讀取資料，請檢查 GAS 部署設定是否設為「所有人」。");
             }
-        };
+        }
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const staffCol = collection(db, 'artifacts', appId, 'public', 'data', 'staff');
-                onSnapshot(staffCol, (snapshot) => {
-                    staffData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    if (staffData.length === 0) seedData();
-                    updateUI();
-                    document.getElementById('loading').style.display = 'none';
-                }, (err) => {
-                    console.error("Firestore error:", err);
-                    alert("資料庫連線失敗，請檢查 Firebase 設定與權限（Firestore Rules）。");
+        async function saveMemberToCloud(id, data, action = "update") {
+            try {
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // 解決 CORS 問題
+                    body: JSON.stringify({ action, id, data })
                 });
+                // 因為 no-cors 無法取得 response，我們直接在本地端更新 UI
+                if (action === "delete") {
+                    staffData = staffData.filter(s => s.id !== id);
+                } else {
+                    const idx = staffData.findIndex(s => s.id === id);
+                    if (idx > -1) staffData[idx] = { ...staffData[idx], ...data };
+                    else staffData.push({ id, ...data });
+                }
+                updateUI();
+            } catch (err) {
+                console.error("Save error:", err);
             }
-        });
-
-        const seedData = async () => {
-            const initialNames = ["黃遠志", "王永銓", "鄭棋云", "洪翊勛", "鄭仲翔", "范秋璇", "林彥廷", "邱逢甲", "劉軒菱", "蔡詠恩", "黃韻頻", "秦崇豪", "王芳芳", "張家寧", "張鳳臻", "黃祥有", "黃邦菊", "段宇", "王思恩", "林意瑄"];
-            for (const name of initialNames) {
-                const id = crypto.randomUUID();
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), createNewMemberObject(name));
-            }
-        };
+        }
 
         function createNewMemberObject(name) {
             return {
@@ -275,18 +257,18 @@
                 tr.innerHTML = `
                     <td class="px-4 py-4 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                         <div class="flex flex-col">
-                            <input type="text" value="${member.name}" onchange="window.updateMemberData('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
+                            <input type="text" value="${member.name}" onchange="window.updateMemberField('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
                             <button onclick="window.deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 uppercase font-bold tracking-tighter">刪除</button>
                         </div>
                     </td>
                     <td class="px-4 py-4">
-                        <select onchange="window.updateMemberData('${member.id}', 'pos', this.value)" class="text-[11px] font-bold text-slate-600 bg-slate-100 rounded px-1 py-1 mb-2 block w-full outline-none">
+                        <select onchange="window.updateMemberField('${member.id}', 'pos', this.value)" class="text-[11px] font-bold text-slate-600 bg-slate-100 rounded px-1 py-1 mb-2 block w-full outline-none">
                             ${POSITIONS.map(p => `<option value="${p}" ${member.pos === p ? 'selected' : ''}>${p}</option>`).join('')}
                         </select>
                         <div class="flex flex-wrap gap-2">
                             ${['fullDay', 'mgr', 'ga'].map(key => `
                                 <label class="inline-flex items-center text-[10px] cursor-pointer text-slate-500">
-                                    <input type="checkbox" ${member[key] ? 'checked' : ''} onchange="window.updateMemberData('${member.id}', '${key}', this.checked)" class="rounded text-emerald-500 mr-1">
+                                    <input type="checkbox" ${member[key] ? 'checked' : ''} onchange="window.updateMemberField('${member.id}', '${key}', this.checked)" class="rounded text-emerald-500 mr-1">
                                     ${key === 'fullDay' ? '全日' : key === 'mgr' ? '區長' : '工務'}
                                 </label>
                             `).join('')}
@@ -300,10 +282,10 @@
                                 <div class="flex flex-col p-1 bg-slate-50/50 rounded border border-slate-100">
                                     <span class="text-[7px] text-slate-400 font-bold uppercase truncate">${s.name}</span>
                                     <div class="flex gap-0.5">
-                                        <select onchange="window.updateStationData('${member.id}', '${s.id}', 'y', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
+                                        <select onchange="window.updateStationField('${member.id}', '${s.id}', 'y', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
                                             <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${record.y == y ? 'selected' : ''}>${y}</option>`).join('')}
                                         </select>
-                                        <select onchange="window.updateStationData('${member.id}', '${s.id}', 'm', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
+                                        <select onchange="window.updateStationField('${member.id}', '${s.id}', 'm', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
                                             <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${record.m == m ? 'selected' : ''}>${m}</option>`).join('')}
                                         </select>
                                     </div>
@@ -358,14 +340,14 @@
                     </div>
                     <div class="flex flex-wrap gap-2 mt-1">
                         ${['fullDay', 'mgr', 'ga'].map(key => `
-                            <button onclick="window.updateMemberData('${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-lg border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-xs text-center transition">
+                            <button onclick="window.updateMemberField('${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-lg border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-xs text-center transition">
                                 ${key === 'fullDay' ? '全日 +4k' : key === 'mgr' ? '區長 +500' : '工務 +1k'}
                             </button>
                         `).join('')}
                     </div>
                     <div class="flex items-center justify-between gap-3">
                          <div class="flex-grow">
-                             <p class="text-[10px] text-slate-400 font-bold uppercase">加給累計</p>
+                             <p class="text-[10px] text-slate-400 font-bold uppercase">加給彙整</p>
                              <p class="text-sm font-bold text-slate-700">+$${(res.totalSkillAccumulated + res.fixedBonus).toLocaleString()}</p>
                          </div>
                          <button onclick="window.openStationModal('${member.id}')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl flex items-center gap-2">
@@ -386,41 +368,42 @@
             if (mainChart) mainChart.destroy();
             mainChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: '預計月薪', data, backgroundColor: '#10b981', borderRadius: 4 }] },
+                data: { labels, datasets: [{ label: '下月預計月薪', data, backgroundColor: '#10b981', borderRadius: 4 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: false, min: 35000 } } }
             });
         }
 
-        // --- Event Handlers & Modal Logic ---
-        window.updateMemberData = async (id, field, value) => {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'staff', id);
-            await updateDoc(docRef, { [field]: value });
+        // --- Interaction Handlers ---
+        window.updateMemberField = (id, field, value) => {
+            const member = staffData.find(m => m.id === id);
+            const updatedData = { ...member, [field]: value };
+            saveMemberToCloud(id, updatedData);
         };
 
-        window.updateStationData = async (memberId, stationId, type, value) => {
+        window.updateStationField = (memberId, stationId, type, value) => {
             const member = staffData.find(m => m.id === memberId);
-            if (!member) return;
             const updatedStations = { ...member.stations };
             updatedStations[stationId][type] = value === "" ? null : parseInt(value);
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'staff', memberId);
-            await updateDoc(docRef, { stations: updatedStations });
+            const updatedData = { ...member, stations: updatedStations };
+            saveMemberToCloud(memberId, updatedData);
         };
 
-        window.addNewStaff = async () => {
-            const name = prompt("請輸入姓名：");
+        window.addNewStaff = () => {
+            const name = prompt("請輸入新員工姓名：");
             if (name && name.trim()) {
-                const id = crypto.randomUUID();
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), createNewMemberObject(name.trim()));
+                const id = "ID_" + Date.now();
+                saveMemberToCloud(id, createNewMemberObject(name.trim()), "update");
             }
         };
 
-        window.deleteMember = async (id) => {
-            if (confirm("確定刪除？")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id));
+        window.deleteMember = (id) => {
+            if (confirm("確定刪除此員工嗎？試算表中的資料也會同步刪除。")) {
+                saveMemberToCloud(id, {}, "delete");
+            }
         };
 
         window.openStationModal = (id) => {
             const member = staffData.find(m => m.id === id);
-            if (!member) return;
             document.getElementById('modal-name').innerText = `${member.name} 的考核進度`;
             const content = document.getElementById('modal-content');
             content.innerHTML = STATIONS.map(s => {
@@ -429,15 +412,14 @@
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <span class="font-bold text-slate-700 text-sm">${s.name} (+$${s.val})</span>
                         <div class="flex gap-2">
-                            <select onchange="window.updateStationData('${id}', '${s.id}', 'y', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                            <select onchange="window.updateStationField('${id}', '${s.id}', 'y', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
                                 <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${rec.y == y ? 'selected' : ''}>${y}</option>`).join('')}
                             </select>
-                            <select onchange="window.updateStationData('${id}', '${s.id}', 'm', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                            <select onchange="window.updateStationField('${id}', '${s.id}', 'm', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
                                 <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${rec.m == m ? 'selected' : ''}>${m}</option>`).join('')}
                             </select>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
             document.getElementById('station-modal').classList.remove('hidden');
         };
@@ -457,7 +439,7 @@
             link.click();
         };
 
-        initApp();
+        window.onload = fetchStaffData;
     </script>
 </body>
 </html>
