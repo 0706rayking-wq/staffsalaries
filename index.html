@@ -29,8 +29,8 @@
         <div id="loading-spinner" class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
         <p id="loading-text" class="text-slate-600 font-medium">正在載入雲端資料庫...</p>
         <div id="error-msg" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm max-w-md mx-4">
-            <p class="font-bold mb-1">⚠️ 連線失敗</p>
-            <p id="error-detail"></p>
+            <p class="font-bold mb-1">⚠️ 連線或程式執行失敗</p>
+            <p id="error-detail" class="break-all whitespace-pre-wrap"></p>
             <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded-md text-xs">重新整理</button>
         </div>
     </div>
@@ -60,6 +60,7 @@
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-emerald-500 snap-center">
                 <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">下月預計平均</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-avg-pay">$0</h3>
+                <p class="text-[10px] text-slate-400" id="kpi-avg-count">基於 0 人</p>
             </div>
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-sky-500 snap-center">
                 <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">考核加給達標</p>
@@ -79,7 +80,7 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
                 <h4 class="font-bold text-slate-700 mb-4 text-sm">雲端連線狀態</h4>
                 <div id="sync-status" class="p-3 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed">
-                    目前已連結至 Google 試算表。<br>修改後約需 1-2 秒處理時間。
+                    已連結至 Google 試算表。<br>修改後請稍候 1-2 秒完成同步。
                 </div>
             </div>
         </section>
@@ -125,8 +126,8 @@
     </div>
 
     <script>
-        // --- ⚠️ 重要：請確保這裡貼入的是「部署」後獲得的「網頁應用程式 URL」 ---
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwjUP_h6k4mXAg3M7H2dvWuQ1qa8ngGa-HnskCPgkXgkGwpbYDheWL5r-wzumysNNdrIA/exec";
+        // --- ⚠️ 重要設定 ---
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbumtcmbHEmIIH1ovZuV04Azv99ZXOgvsdxRcK7RJK0zPdsLRrT9ajvNdE4yZwONhYjg/exec";
 
         const CURRENT_YEAR = 2026;
         const CURRENT_MONTH = 1;
@@ -146,10 +147,26 @@
         let staffData = [];
         let mainChart = null;
 
-        // --- Data Interaction ---
+        // 安全更新 UI 工具
+        const safeSetText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        };
+
+        const safeSetHTML = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        };
+
+        // --- 資料交互 ---
         async function fetchStaffData() {
-            if (GAS_WEB_APP_URL.includes("您的")) {
-                showError("尚未填寫 GAS URL。請編輯 HTML 代碼，將您部署獲得的 URL 貼入 GAS_WEB_APP_URL 變數中。");
+            if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("您的")) {
+                showError("尚未填寫 GAS URL。請編輯代碼將 URL 貼入 GAS_WEB_APP_URL 變數中。");
+                return;
+            }
+
+            if (!GAS_WEB_APP_URL.includes("/exec")) {
+                showError("GAS URL 格式似乎不正確，請確認網址結尾應為 /exec，而非 /edit。");
                 return;
             }
 
@@ -159,15 +176,14 @@
                     headers: { 'Accept': 'application/json' }
                 });
 
-                if (!response.ok) throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}。請檢查 GAS 是否設為「所有人」存取。`);
+                }
                 
                 const rawData = await response.json();
-                
-                // 確保讀取到的資料格式正確
                 staffData = Array.isArray(rawData) ? rawData : [];
                 
                 if (staffData.length === 0) {
-                    console.log("試算表為空，正在初始化預設資料...");
                     await seedInitialData();
                 }
 
@@ -175,7 +191,7 @@
                 document.getElementById('loading').style.display = 'none';
             } catch (err) {
                 console.error("Fetch error:", err);
-                showError(`無法取得資料。請確認 GAS 部署為「所有人」且網址正確。<br>詳細錯誤: ${err.message}`);
+                showError(`連線失敗！<br>1. 請檢查網路<br>2. 請確認 GAS 部署為「所有人」存取<br>3. 錯誤詳情: ${err.message}`);
             }
         }
 
@@ -186,12 +202,11 @@
                 const member = createNewMemberObject(name);
                 await saveMemberToCloud(id, member, "update", true);
             }
-            location.reload(); // 重整以載入新產生的資料
+            location.reload();
         }
 
         async function saveMemberToCloud(id, data, action = "update", silent = false) {
             try {
-                // 更新 UI 狀態
                 const statusEl = document.getElementById('sync-status');
                 if (statusEl) {
                     statusEl.innerText = "同步中...";
@@ -204,7 +219,6 @@
                     body: JSON.stringify({ action, id, data })
                 });
 
-                // 本地資料同步更新
                 if (action === "delete") {
                     staffData = staffData.filter(s => s.id !== id);
                 } else {
@@ -223,15 +237,20 @@
                 }
             } catch (err) {
                 console.error("Save error:", err);
-                if (!silent) alert("儲存失敗，請檢查網路或 GAS 設定。");
+                if (!silent) alert("儲存失敗，請檢查網路。");
             }
         }
 
         function showError(msg) {
-            document.getElementById('loading-spinner').classList.add('hidden');
-            document.getElementById('loading-text').classList.add('hidden');
-            document.getElementById('error-msg').classList.remove('hidden');
-            document.getElementById('error-detail').innerHTML = msg;
+            const spinner = document.getElementById('loading-spinner');
+            const lText = document.getElementById('loading-text');
+            const errMsg = document.getElementById('error-msg');
+            const errDetail = document.getElementById('error-detail');
+
+            if (spinner) spinner.classList.add('hidden');
+            if (lText) lText.classList.add('hidden');
+            if (errMsg) errMsg.classList.remove('hidden');
+            if (errDetail) errDetail.innerHTML = msg;
         }
 
         function createNewMemberObject(name) {
@@ -243,7 +262,7 @@
             };
         }
 
-        // --- Calculations ---
+        // --- 計算邏輯 ---
         function calculateSalary(member) {
             const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
             let fixedBonus = 0;
@@ -278,7 +297,7 @@
             };
         }
 
-        // --- UI Rendering ---
+        // --- UI 渲染 ---
         function updateUI() {
             renderKPIs();
             renderTable();
@@ -294,15 +313,17 @@
                 if (res.totalSkillAccumulated >= 4000) maxed++;
                 if (res.isIncreased) adjustments++;
             });
-            document.getElementById('kpi-total-pay').innerText = `$${nextTotal.toLocaleString()}`;
-            document.getElementById('kpi-avg-pay').innerText = publicCount > 0 ? `$${Math.round(nextTotal / publicCount).toLocaleString()}` : "$0";
-            document.getElementById('kpi-avg-count').innerText = `基於 ${publicCount} 名正職預估`;
-            document.getElementById('kpi-maxed').innerText = maxed;
-            document.getElementById('kpi-adjustments').innerText = adjustments;
+            
+            safeSetText('kpi-total-pay', `$${nextTotal.toLocaleString()}`);
+            safeSetText('kpi-avg-pay', publicCount > 0 ? `$${Math.round(nextTotal / publicCount).toLocaleString()}` : "$0");
+            safeSetText('kpi-avg-count', `基於 ${publicCount} 名正職預估`);
+            safeSetText('kpi-maxed', maxed);
+            safeSetText('kpi-adjustments', adjustments);
         }
 
         function renderTable() {
             const tbody = document.getElementById('staff-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
             staffData.forEach((member) => {
                 const res = calculateSalary(member);
@@ -373,6 +394,7 @@
 
         function renderCards() {
             const container = document.getElementById('staff-cards');
+            if (!container) return;
             container.innerHTML = '';
             staffData.forEach((member) => {
                 const res = calculateSalary(member);
@@ -414,7 +436,9 @@
         }
 
         function renderCharts() {
-            const ctx = document.getElementById('salaryChart').getContext('2d');
+            const canvasEl = document.getElementById('salaryChart');
+            if (!canvasEl) return;
+            const ctx = canvasEl.getContext('2d');
             const publicData = staffData.filter(s => !LEADERSHIP_ROLES.includes(s.pos)).sort((a,b) => calculateSalary(b).nextTotal - calculateSalary(a).nextTotal);
             if (publicData.length === 0) return;
             const labels = publicData.map(s => s.name);
@@ -427,15 +451,17 @@
             });
         }
 
-        // --- Interaction Handlers ---
+        // --- 互動處理程序 ---
         window.updateMemberField = (id, field, value) => {
             const member = staffData.find(m => m.id === id);
+            if (!member) return;
             const updatedData = { ...member, [field]: value };
             saveMemberToCloud(id, updatedData);
         };
 
         window.updateStationField = (memberId, stationId, type, value) => {
             const member = staffData.find(m => m.id === memberId);
+            if (!member) return;
             const updatedStations = { ...member.stations };
             updatedStations[stationId][type] = value === "" ? null : parseInt(value);
             const updatedData = { ...member, stations: updatedStations };
@@ -458,27 +484,34 @@
 
         window.openStationModal = (id) => {
             const member = staffData.find(m => m.id === id);
-            document.getElementById('modal-name').innerText = `${member.name} 的考核進度`;
+            if (!member) return;
+            safeSetText('modal-name', `${member.name} 的考核進度`);
             const content = document.getElementById('modal-content');
-            content.innerHTML = STATIONS.map(s => {
-                const rec = member.stations[s.id];
-                return `
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span class="font-bold text-slate-700 text-sm">${s.name} (+$${s.val})</span>
-                        <div class="flex gap-2">
-                            <select onchange="window.updateStationField('${id}', '${s.id}', 'y', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
-                                <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${rec.y == y ? 'selected' : ''}>${y}</option>`).join('')}
-                            </select>
-                            <select onchange="window.updateStationField('${id}', '${s.id}', 'm', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
-                                <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${rec.m == m ? 'selected' : ''}>${m}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>`;
-            }).join('');
-            document.getElementById('station-modal').classList.remove('hidden');
+            if (content) {
+                content.innerHTML = STATIONS.map(s => {
+                    const rec = member.stations[s.id];
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <span class="font-bold text-slate-700 text-sm">${s.name} (+$${s.val})</span>
+                            <div class="flex gap-2">
+                                <select onchange="window.updateStationField('${id}', '${s.id}', 'y', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                                    <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${rec.y == y ? 'selected' : ''}>${y}</option>`).join('')}
+                                </select>
+                                <select onchange="window.updateStationField('${id}', '${s.id}', 'm', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                                    <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${rec.m == m ? 'selected' : ''}>${m}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+            const modal = document.getElementById('station-modal');
+            if (modal) modal.classList.remove('hidden');
         };
 
-        window.closeModal = () => document.getElementById('station-modal').classList.add('hidden');
+        window.closeModal = () => {
+            const modal = document.getElementById('station-modal');
+            if (modal) modal.classList.add('hidden');
+        };
 
         window.exportCSV = () => {
             let csv = "\uFEFF姓名,職位,加給總計,本月實領,下月預計\n";
