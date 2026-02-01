@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>南港廚房薪資考核管理系統</title>
+    <title>廚房薪資考核管理系統 - 雲端即時同步版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 引入 SortableJS 用於拖曳排序 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <style>
@@ -20,6 +22,22 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.9); z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        /* 拖曳時的樣式 */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #ecfdf5 !important;
+        }
+        .drag-handle {
+            cursor: grab;
+            color: #cbd5e1;
+            padding: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
         }
     </style>
 </head>
@@ -78,18 +96,18 @@
                 <div class="chart-container"><canvas id="salaryChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                <h4 class="font-bold text-slate-700 mb-4 text-sm">調薪自動化說明</h4>
+                <h4 class="font-bold text-slate-700 mb-4 text-sm">操作說明</h4>
                 <div class="p-4 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed space-y-3">
                     <p><strong>📅 系統當前日期：</strong> <span id="current-basis-display" class="font-bold">--</span></p>
-                    <p><strong>💡 調薪規則 (M+2)：</strong><br>依據考核月份後的第二個月自動調整。系統會即時顯示「下個月」與「下下個月」應領薪資，方便成本控管。</p>
+                    <p><strong>↕️ 拖曳排序：</strong><br>您可以按住姓名旁的 ⠿ 圖示上下拖曳，調整同仁在清單中的顯示順序，系統會自動儲存。</p>
                     <div class="border-t border-emerald-100 pt-2 text-emerald-600">
-                        * 舉例：1月通過考核，則 2月領原薪，3月開始加給。
+                        * 調薪規則 (M+2)：依據考核月份後的第二個月自動調整。
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Staff List (Mobile View: Cards, Desktop View: Table) -->
+        <!-- Staff List -->
         <section class="bg-white md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h2 class="text-base font-bold">員工清單與考核進度</h2>
@@ -119,7 +137,7 @@
         </section>
     </main>
 
-    <!-- Modal for Station Editing (Mobile) -->
+    <!-- Modal for Station Editing -->
     <div id="station-modal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -135,9 +153,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- ⚠️ 步驟：貼上 Firebase Config ---
+        // --- Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyCbW_5pInvvC8aJbMn93roWVKyvk1UnVVc", 
             authDomain: "kitchensalary-ac449.firebaseapp.com", 
@@ -155,10 +173,9 @@
         // --- 動態日期計算系統 ---
         const today = new Date();
         const CURRENT_YEAR = today.getFullYear();
-        const CURRENT_MONTH = today.getMonth() + 1; // 1-12
+        const CURRENT_MONTH = today.getMonth() + 1;
         const CURRENT_ROC_YEAR = CURRENT_YEAR - 1911;
 
-        // 計算下個月與後個月的名稱與年份 (Gregorian)
         function getNextMonthInfo(offset) {
             let targetMonth = CURRENT_MONTH + offset;
             let targetYear = CURRENT_YEAR;
@@ -172,13 +189,9 @@
         const NEXT_MONTH = getNextMonthInfo(1);
         const FUTURE_MONTH = getNextMonthInfo(2);
 
-        // --- 介面文字初始化 ---
         function initDateLabels() {
-            const nextLabels = document.querySelectorAll('.next-month-name');
-            const futureLabels = document.querySelectorAll('.future-month-name');
-            nextLabels.forEach(el => el.innerText = NEXT_MONTH.m);
-            futureLabels.forEach(el => el.innerText = FUTURE_MONTH.m);
-            
+            document.querySelectorAll('.next-month-name').forEach(el => el.innerText = NEXT_MONTH.m);
+            document.querySelectorAll('.future-month-name').forEach(el => el.innerText = FUTURE_MONTH.m);
             const basisDisplay = document.getElementById('current-basis-display');
             if (basisDisplay) basisDisplay.innerText = `民國 ${CURRENT_ROC_YEAR} 年 ${CURRENT_MONTH} 月`;
         }
@@ -199,6 +212,8 @@
 
         let staffData = [];
         let mainChart = null;
+        let sortableTable = null;
+        let sortableCards = null;
 
         // --- Firebase Sync ---
         const initFirebase = async () => {
@@ -207,8 +222,13 @@
                 const staffCol = collection(db, 'artifacts', appId, 'public', 'data', 'staff');
                 onSnapshot(staffCol, (snapshot) => {
                     staffData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    // 關鍵：根據 sortOrder 排序，如果沒設過順序則按姓名
+                    staffData.sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999));
+
                     if (staffData.length === 0) seedInitialData();
                     updateUI();
+                    initSortable(); // 資料變動後重新初始化排序功能
                     document.getElementById('loading').style.display = 'none';
                 });
             } catch (e) {
@@ -219,15 +239,47 @@
 
         const seedInitialData = async () => {
             const names = ["黃遠志", "王永銓", "鄭棋云", "洪翊勛", "鄭仲翔", "范秋璇", "林彥廷", "邱逢甲", "劉軒菱", "蔡詠恩", "黃韻頻", "秦崇豪", "王芳芳", "張家寧", "張鳳臻", "黃祥有", "黃邦菊", "段宇", "王思恩", "林意瑄"];
-            for (const name of names) {
+            for (let i = 0; i < names.length; i++) {
                 const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 const member = {
-                    name: name, pos: "正職", fullDay: false, mgr: false, ga: false,
+                    name: names[i], pos: "正職", fullDay: false, mgr: false, ga: false,
+                    sortOrder: i, // 給予初始順序
                     stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
                 };
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
             }
         };
+
+        // --- Drag & Drop Initialization ---
+        function initSortable() {
+            const tableBody = document.getElementById('staff-table-body');
+            const cardContainer = document.getElementById('staff-cards');
+
+            if (sortableTable) sortableTable.destroy();
+            if (sortableCards) sortableCards.destroy();
+
+            const options = {
+                animation: 150,
+                handle: '.drag-handle', // 只有點擊手把才能拖曳
+                ghostClass: 'sortable-ghost',
+                onEnd: async function() {
+                    // 拖曳結束後，計算新順序並更新雲端
+                    const items = Array.from(this.el.children);
+                    const batch = writeBatch(db);
+                    
+                    items.forEach((item, index) => {
+                        const id = item.getAttribute('data-id');
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'staff', id);
+                        batch.update(docRef, { sortOrder: index });
+                    });
+                    
+                    await batch.commit();
+                }
+            };
+
+            if (tableBody) sortableTable = new Sortable(tableBody, options);
+            if (cardContainer) sortableCards = new Sortable(cardContainer, options);
+        }
 
         // --- Interaction ---
         window.updateMemberField = async (id, field, value) => {
@@ -249,6 +301,7 @@
                 const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 const member = {
                     name: name, pos: "正職", fullDay: false, mgr: false, ga: false,
+                    sortOrder: staffData.length, // 排在最後
                     stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
                 };
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
@@ -259,7 +312,7 @@
             if (confirm("確定要刪除？")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id));
         };
 
-        // --- Calculations (M+2 Logic) ---
+        // --- Calculations ---
         function calculateSalary(member) {
             const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
             let fixedBonus = 0;
@@ -267,9 +320,9 @@
             if (member.mgr) fixedBonus += 500;
             if (member.ga) fixedBonus += 1000;
 
-            let nextSkillSum = 0;       // 下月應領
-            let futureSkillSum = 0;     // 後月應領
-            let targetSkillSum = 0;     // 已考取總額
+            let nextSkillSum = 0;
+            let futureSkillSum = 0;
+            let targetSkillSum = 0;
             
             const nextTotalMonths = NEXT_MONTH.y * 12 + NEXT_MONTH.m;
             const futureTotalMonths = FUTURE_MONTH.y * 12 + FUTURE_MONTH.m;
@@ -278,8 +331,7 @@
                 const record = member.stations[s.id];
                 if (record && record.y && record.m) {
                     const passTotalMonths = parseInt(record.y) * 12 + parseInt(record.m);
-                    const effectiveMonths = passTotalMonths + 2; // M+2 Rule
-
+                    const effectiveMonths = passTotalMonths + 2;
                     targetSkillSum += s.val;
                     if (effectiveMonths <= nextTotalMonths) nextSkillSum += s.val;
                     if (effectiveMonths <= futureTotalMonths) futureSkillSum += s.val;
@@ -330,11 +382,15 @@
                 const res = calculateSalary(member);
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
+                tr.setAttribute('data-id', member.id); // 給 Sortable 識別用
                 tr.innerHTML = `
                     <td class="px-4 py-4 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
-                        <div class="flex flex-col">
-                            <input type="text" value="${member.name}" onchange="window.updateMemberField('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
-                            <button onclick="window.deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 font-bold">刪除</button>
+                        <div class="flex items-center gap-2">
+                            <div class="drag-handle">⠿</div>
+                            <div class="flex flex-col flex-grow">
+                                <input type="text" value="${member.name}" onchange="window.updateMemberField('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
+                                <button onclick="window.deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 font-bold">刪除</button>
+                            </div>
                         </div>
                     </td>
                     <td class="px-4 py-4">
@@ -400,14 +456,18 @@
             staffData.forEach((member) => {
                 const res = calculateSalary(member);
                 const card = document.createElement('div');
-                card.className = "p-4 flex flex-col gap-3";
+                card.className = "p-4 flex flex-col gap-3 bg-white";
+                card.setAttribute('data-id', member.id);
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-medium">${member.pos}</span>
-                                ${res.isIncreased ? `<span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
+                        <div class="flex items-center gap-2">
+                            <div class="drag-handle text-xl">⠿</div>
+                            <div>
+                                <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-medium">${member.pos}</span>
+                                    ${res.isIncreased ? `<span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
+                                </div>
                             </div>
                         </div>
                         <div class="text-right">
