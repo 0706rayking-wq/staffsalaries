@@ -20,24 +20,30 @@
         }
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 9999;
+            background: rgba(255,255,255,0.95); z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        /* 拖曳時的樣式 */
+        /* 拖曳樣式優化 */
         .sortable-ghost {
-            opacity: 0.4;
-            background-color: #ecfdf5 !important;
+            opacity: 0.3;
+            background-color: #f0fdf4 !important;
+            border: 2px dashed #10b981 !important;
         }
         .drag-handle {
             cursor: grab;
-            color: #cbd5e1;
-            padding: 4px;
+            color: #94a3b8;
+            padding: 8px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            user-select: none;
+            font-size: 18px;
         }
         .drag-handle:active {
             cursor: grabbing;
+        }
+        tr.hover\:bg-slate-50:hover .drag-handle {
+            color: #64748b;
         }
     </style>
 </head>
@@ -46,63 +52,61 @@
     <!-- Loading Overlay -->
     <div id="loading" class="loading-overlay">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
-        <p class="text-slate-500 text-sm font-medium">正在載入雲端資料庫...</p>
+        <p class="text-slate-600 text-sm font-medium">正在載入雲端資料庫...</p>
     </div>
 
     <!-- Header -->
-    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
+    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center font-bold text-lg text-white">薪</div>
                 <h1 class="text-lg font-bold tracking-tight">廚房薪資管理 <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded ml-1">雲端即時版</span></h1>
             </div>
             <div class="flex gap-2">
-                <button onclick="addNewStaff()" class="p-2 bg-emerald-600 hover:bg-emerald-500 rounded text-sm transition font-bold">＋ 新增</button>
-                <button onclick="exportCSV()" class="p-2 bg-slate-700 rounded text-sm desktop-only">匯出 CSV</button>
+                <button onclick="addNewStaff()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm transition font-bold shadow-sm">＋ 新增員工</button>
+                <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition desktop-only">匯出 CSV</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- KPI Cards -->
+        <!-- KPI Cards (動態標題) -->
         <section class="flex overflow-x-auto gap-4 pb-2 no-scrollbar snap-x">
-            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest"><span class="future-month-name">--</span>月預計支出總額</p>
+            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 snap-center">
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest"><span class="future-month-name">--</span>月 預計支出總額</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-total-pay">$0</h3>
-                <p class="text-slate-400 text-[10px] mt-1 italic">僅統計正職人員</p>
+                <p class="text-slate-400 text-[10px] mt-1 italic">僅計正職同仁</p>
             </div>
-            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-emerald-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest"><span class="next-month-name">--</span>月預計平均薪資</p>
+            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-emerald-500 snap-center">
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest"><span class="next-month-name">--</span>月 預計平均薪資</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-avg-pay">$0</h3>
                 <p class="text-[10px] text-slate-400" id="kpi-avg-count">基於 0 人</p>
             </div>
-            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-sky-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">加給累計滿額人數</p>
+            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-sky-500 snap-center">
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">考核獎金滿額人數</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-maxed">0</h3>
-                <p class="text-[10px] text-slate-400">技能加給達 $4,000 上限</p>
+                <p class="text-[10px] text-slate-400">已達 $4,000 上限</p>
             </div>
-            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-amber-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">預計調薪變動人次</p>
+            <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-amber-500 snap-center">
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">未來調薪變動次數</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-adjustments">0</h3>
-                <p class="text-slate-400 text-[10px] mt-1">未來兩月內生效件數</p>
+                <p class="text-slate-400 text-[10px] mt-1">兩月內生效件數</p>
             </div>
         </section>
 
-        <!-- Charts -->
+        <!-- Charts & Logic Guide -->
         <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 預計薪資分佈圖 (僅正職)</h4>
+                <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 預計薪資分佈 (正職)</h4>
                 <div class="chart-container"><canvas id="salaryChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                <h4 class="font-bold text-slate-700 mb-4 text-sm">操作說明</h4>
-                <div class="p-4 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed space-y-3">
-                    <p><strong>📅 系統當前日期：</strong> <span id="current-basis-display" class="font-bold">--</span></p>
-                    <p><strong>↕️ 拖曳排序：</strong><br>您可以按住姓名旁的 ⠿ 圖示上下拖曳，調整同仁在清單中的顯示順序，系統會自動儲存。</p>
-                    <div class="border-t border-emerald-100 pt-2 text-emerald-600">
-                        * 調薪規則 (M+2)：依據考核月份後的第二個月自動調整。
-                    </div>
+                <h4 class="font-bold text-slate-700 mb-4 text-sm">智慧管理提示</h4>
+                <div class="p-4 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 leading-relaxed space-y-3">
+                    <p><strong>📅 當前計算基準：</strong> <span id="current-basis-display" class="font-bold text-emerald-600">--</span></p>
+                    <p><strong>↕️ 自由排序：</strong><br>按住姓名左側的 ⠿ 即可拖曳。系統會記住您的排序，方便您按職級或入職序管理。</p>
+                    <p><strong>💡 調薪邏輯：</strong><br>採 M+2 生效制。今日編輯後，系統會自動推算出「下月」與「後月」的預算變動。</p>
                 </div>
             </div>
         </section>
@@ -110,25 +114,27 @@
         <!-- Staff List -->
         <section class="bg-white md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <h2 class="text-base font-bold">員工清單與考核進度</h2>
+                <h2 class="text-base font-bold text-slate-800">員工管理與考核明細</h2>
                 <div class="flex items-center gap-2">
-                    <span id="sync-status" class="text-[10px] font-bold text-emerald-500 animate-pulse">● 雲端同步中</span>
+                    <span id="sync-status" class="text-[10px] font-bold text-emerald-500">● 雲端連線中</span>
                 </div>
             </div>
             
+            <!-- Mobile Card List -->
             <div id="staff-cards" class="md:hidden divide-y divide-slate-100"></div>
 
+            <!-- Desktop Table View -->
             <div class="hidden md:block overflow-x-auto no-scrollbar">
                 <table class="w-full text-left text-sm border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[11px] uppercase tracking-wider">
-                            <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名</th>
-                            <th class="px-4 py-4 w-40">職位 / 狀態項目</th>
+                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10px] uppercase tracking-wider">
+                            <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名 (可拖曳)</th>
+                            <th class="px-4 py-4 w-40">職位 / 狀態</th>
                             <th class="px-4 py-4 text-center">各區站考核 (年/月)</th>
-                            <th class="px-4 py-4 text-right w-32">目前加給累計</th>
-                            <th class="px-4 py-4 text-right w-28 bg-slate-100/50 text-slate-900 border-x border-slate-200"><span class="next-month-name">--</span>月預計實領</th>
-                            <th class="px-4 py-4 text-right w-28 bg-emerald-50 text-emerald-900"><span class="future-month-name">--</span>月預計實領</th>
-                            <th class="px-4 py-4 w-16 text-center">異動</th>
+                            <th class="px-4 py-4 text-right w-32">加給總計</th>
+                            <th class="px-4 py-4 text-right w-28 bg-slate-100/30 border-x border-slate-100"><span class="next-month-name">--</span>月 預計實領</th>
+                            <th class="px-4 py-4 text-right w-28 bg-emerald-50/50 font-bold text-emerald-900"><span class="future-month-name">--</span>月 預計實領</th>
+                            <th class="px-4 py-4 w-16 text-center">操作</th>
                         </tr>
                     </thead>
                     <tbody id="staff-table-body" class="divide-y divide-slate-100"></tbody>
@@ -138,24 +144,24 @@
     </main>
 
     <!-- Modal for Station Editing -->
-    <div id="station-modal" class="fixed inset-0 bg-black/50 z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-lg" id="modal-name">區站考核編輯</h3>
-                <button onclick="closeModal()" class="text-slate-400 p-1">✕</button>
+    <div id="station-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-all">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl overflow-hidden">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="font-bold text-lg text-slate-800" id="modal-name">區站考核</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center">✕</button>
             </div>
-            <div id="modal-content" class="grid grid-cols-1 gap-3 max-h-[60vh] overflow-y-auto pr-2 no-scrollbar"></div>
-            <button onclick="closeModal()" class="w-full mt-6 py-3 bg-slate-900 text-white rounded-xl font-bold">完成並儲存</button>
+            <div id="modal-content" class="grid grid-cols-1 gap-2.5 max-h-[60vh] overflow-y-auto pr-2 no-scrollbar"></div>
+            <button onclick="closeModal()" class="w-full mt-6 py-3.5 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition shadow-lg">完成並同步雲端</button>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Firebase Config ---
+        // --- ⚠️ Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyCbW_5pInvvC8aJbMn93roWVKyvk1UnVVc", 
             authDomain: "kitchensalary-ac449.firebaseapp.com", 
@@ -170,30 +176,28 @@
         const db = getFirestore(app);
         const appId = "kitchen-salary-nankang";
 
-        // --- 動態日期計算系統 ---
+        // --- 動態日期邏輯 ---
         const today = new Date();
         const CURRENT_YEAR = today.getFullYear();
         const CURRENT_MONTH = today.getMonth() + 1;
         const CURRENT_ROC_YEAR = CURRENT_YEAR - 1911;
 
-        function getNextMonthInfo(offset) {
-            let targetMonth = CURRENT_MONTH + offset;
-            let targetYear = CURRENT_YEAR;
-            while (targetMonth > 12) {
-                targetMonth -= 12;
-                targetYear += 1;
-            }
-            return { y: targetYear, m: targetMonth };
+        function getMonthInfo(offset) {
+            let m = CURRENT_MONTH + offset;
+            let y = CURRENT_YEAR;
+            while (m > 12) { m -= 12; y += 1; }
+            while (m < 1) { m += 12; y -= 1; }
+            return { y, m };
         }
 
-        const NEXT_MONTH = getNextMonthInfo(1);
-        const FUTURE_MONTH = getNextMonthInfo(2);
+        const NEXT_MONTH = getMonthInfo(1);
+        const FUTURE_MONTH = getMonthInfo(2);
 
         function initDateLabels() {
             document.querySelectorAll('.next-month-name').forEach(el => el.innerText = NEXT_MONTH.m);
             document.querySelectorAll('.future-month-name').forEach(el => el.innerText = FUTURE_MONTH.m);
-            const basisDisplay = document.getElementById('current-basis-display');
-            if (basisDisplay) basisDisplay.innerText = `民國 ${CURRENT_ROC_YEAR} 年 ${CURRENT_MONTH} 月`;
+            const basis = document.getElementById('current-basis-display');
+            if (basis) basis.innerText = `民國 ${CURRENT_ROC_YEAR} 年 ${CURRENT_MONTH} 月`;
         }
 
         // --- Constants ---
@@ -215,7 +219,7 @@
         let sortableTable = null;
         let sortableCards = null;
 
-        // --- Firebase Sync ---
+        // --- Firebase Auth & Sync ---
         const initFirebase = async () => {
             try {
                 await signInAnonymously(auth);
@@ -223,62 +227,66 @@
                 onSnapshot(staffCol, (snapshot) => {
                     staffData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     
-                    // 關鍵：根據 sortOrder 排序，如果沒設過順序則按姓名
-                    staffData.sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999));
+                    // 根據 sortOrder 排序，若無則排最後
+                    staffData.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
 
                     if (staffData.length === 0) seedInitialData();
+                    
                     updateUI();
-                    initSortable(); // 資料變動後重新初始化排序功能
+                    initSortableLogic(); // 每次資料更新後重新綁定拖曳
                     document.getElementById('loading').style.display = 'none';
                 });
             } catch (e) {
-                console.error("Firebase 連線失敗", e);
-                alert("資料庫連線失敗，請檢查 Config 與安全性規則。");
+                console.error("Firebase Error", e);
+                alert("連線失敗，請檢查 Firebase 設定與安全性規則。");
             }
         };
 
         const seedInitialData = async () => {
             const names = ["黃遠志", "王永銓", "鄭棋云", "洪翊勛", "鄭仲翔", "范秋璇", "林彥廷", "邱逢甲", "劉軒菱", "蔡詠恩", "黃韻頻", "秦崇豪", "王芳芳", "張家寧", "張鳳臻", "黃祥有", "黃邦菊", "段宇", "王思恩", "林意瑄"];
-            for (let i = 0; i < names.length; i++) {
+            const batch = writeBatch(db);
+            names.forEach((name, i) => {
                 const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 const member = {
-                    name: names[i], pos: "正職", fullDay: false, mgr: false, ga: false,
-                    sortOrder: i, // 給予初始順序
+                    name, pos: "正職", fullDay: false, mgr: false, ga: false,
+                    sortOrder: i,
                     stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
                 };
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
-            }
+                batch.set(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
+            });
+            await batch.commit();
         };
 
-        // --- Drag & Drop Initialization ---
-        function initSortable() {
+        // --- 拖曳排序初始化 ---
+        function initSortableLogic() {
             const tableBody = document.getElementById('staff-table-body');
-            const cardContainer = document.getElementById('staff-cards');
+            const cardList = document.getElementById('staff-cards');
 
             if (sortableTable) sortableTable.destroy();
             if (sortableCards) sortableCards.destroy();
 
-            const options = {
-                animation: 150,
-                handle: '.drag-handle', // 只有點擊手把才能拖曳
-                ghostClass: 'sortable-ghost',
-                onEnd: async function() {
-                    // 拖曳結束後，計算新順序並更新雲端
-                    const items = Array.from(this.el.children);
-                    const batch = writeBatch(db);
-                    
-                    items.forEach((item, index) => {
-                        const id = item.getAttribute('data-id');
+            const onSortEnd = async (evt) => {
+                const items = Array.from(evt.to.children);
+                const batch = writeBatch(db);
+                items.forEach((item, index) => {
+                    const id = item.getAttribute('data-id');
+                    if (id) {
                         const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'staff', id);
                         batch.update(docRef, { sortOrder: index });
-                    });
-                    
-                    await batch.commit();
-                }
+                    }
+                });
+                await batch.commit();
             };
 
-            if (tableBody) sortableTable = new Sortable(tableBody, options);
-            if (cardContainer) sortableCards = new Sortable(cardContainer, options);
+            const config = {
+                animation: 200,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost',
+                onEnd: onSortEnd
+            };
+
+            if (tableBody) sortableTable = new Sortable(tableBody, config);
+            if (cardList) sortableCards = new Sortable(cardList, config);
         }
 
         // --- Interaction ---
@@ -289,6 +297,7 @@
 
         window.updateStationField = async (memberId, stationId, type, value) => {
             const member = staffData.find(m => m.id === memberId);
+            if (!member) return;
             const updatedStations = { ...member.stations };
             updatedStations[stationId][type] = value === "" ? null : parseInt(value);
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'staff', memberId);
@@ -296,12 +305,12 @@
         };
 
         window.addNewStaff = async () => {
-            const name = prompt("請輸入新員工姓名：");
+            const name = prompt("請輸入新進員工姓名：");
             if (name && name.trim()) {
                 const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 const member = {
-                    name: name, pos: "正職", fullDay: false, mgr: false, ga: false,
-                    sortOrder: staffData.length, // 排在最後
+                    name: name.trim(), pos: "正職", fullDay: false, mgr: false, ga: false,
+                    sortOrder: staffData.length,
                     stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
                 };
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
@@ -309,10 +318,12 @@
         };
 
         window.deleteMember = async (id) => {
-            if (confirm("確定要刪除？")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id));
+            if (confirm("確定要刪除這位同仁嗎？此操作無法還原。")) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id));
+            }
         };
 
-        // --- Calculations ---
+        // --- Calculations (M+2) ---
         function calculateSalary(member) {
             const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
             let fixedBonus = 0;
@@ -320,33 +331,31 @@
             if (member.mgr) fixedBonus += 500;
             if (member.ga) fixedBonus += 1000;
 
-            let nextSkillSum = 0;
-            let futureSkillSum = 0;
-            let targetSkillSum = 0;
-            
-            const nextTotalMonths = NEXT_MONTH.y * 12 + NEXT_MONTH.m;
-            const futureTotalMonths = FUTURE_MONTH.y * 12 + FUTURE_MONTH.m;
+            let nextSkillSum = 0, futureSkillSum = 0, totalSkillSum = 0;
+            const nextVal = NEXT_MONTH.y * 12 + NEXT_MONTH.m;
+            const futureVal = FUTURE_MONTH.y * 12 + FUTURE_MONTH.m;
 
             STATIONS.forEach(s => {
-                const record = member.stations[s.id];
-                if (record && record.y && record.m) {
-                    const passTotalMonths = parseInt(record.y) * 12 + parseInt(record.m);
-                    const effectiveMonths = passTotalMonths + 2;
-                    targetSkillSum += s.val;
-                    if (effectiveMonths <= nextTotalMonths) nextSkillSum += s.val;
-                    if (effectiveMonths <= futureTotalMonths) futureSkillSum += s.val;
+                const rec = member.stations[s.id];
+                if (rec && rec.y && rec.m) {
+                    const passVal = parseInt(rec.y) * 12 + parseInt(rec.m);
+                    const effectiveVal = passVal + 2; // M+2生效
+                    totalSkillSum += s.val;
+                    if (effectiveVal <= nextVal) nextSkillSum += s.val;
+                    if (effectiveVal <= futureVal) futureSkillSum += s.val;
                 }
             });
 
-            const nextSkillBonus = Math.min(nextSkillSum, 4000);
-            const futureSkillBonus = Math.min(futureSkillSum, 4000);
-            const totalSkillAccumulated = Math.min(targetSkillSum, 4000);
+            const nBonus = Math.min(nextSkillSum, 4000);
+            const fBonus = Math.min(futureSkillSum, 4000);
+            const aBonus = Math.min(totalSkillSum, 4000);
 
-            return { 
-                nextTotal: BASE_SALARY + fixedBonus + nextSkillBonus, 
-                futureTotal: BASE_SALARY + fixedBonus + futureSkillBonus, 
-                fixedBonus, nextSkillBonus, futureSkillBonus, totalSkillAccumulated,
-                isPublic, isIncreased: futureSkillBonus > nextSkillBonus
+            return {
+                nextTotal: BASE_SALARY + fixedBonus + nBonus,
+                futureTotal: BASE_SALARY + fixedBonus + fBonus,
+                accumulatedBonus: aBonus + fixedBonus,
+                isPublic, 
+                isIncreased: fBonus > nBonus
             };
         }
 
@@ -360,18 +369,18 @@
         }
 
         function renderKPIs() {
-            let futureTotal = 0, maxed = 0, publicCount = 0, adjustments = 0;
+            let fTotal = 0, maxed = 0, pCount = 0, adj = 0;
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                if (res.isPublic) { futureTotal += res.futureTotal; publicCount++; }
-                if (res.totalSkillAccumulated >= 4000) maxed++;
-                if (res.isIncreased) adjustments++;
+                if (res.isPublic) { fTotal += res.futureTotal; pCount++; }
+                if ((res.accumulatedBonus - res.fixedBonus) >= 4000) maxed++;
+                if (res.isIncreased) adj++;
             });
-            document.getElementById('kpi-total-pay').innerText = `$${futureTotal.toLocaleString()}`;
-            document.getElementById('kpi-avg-pay').innerText = publicCount > 0 ? `$${Math.round(futureTotal / publicCount).toLocaleString()}` : "$0";
-            document.getElementById('kpi-avg-count').innerText = `基於 ${publicCount} 名正職預估`;
+            document.getElementById('kpi-total-pay').innerText = `$${fTotal.toLocaleString()}`;
+            document.getElementById('kpi-avg-pay').innerText = pCount > 0 ? `$${Math.round(fTotal / pCount).toLocaleString()}` : "$0";
+            document.getElementById('kpi-avg-count').innerText = `基於 ${pCount} 名正職`;
             document.getElementById('kpi-maxed').innerText = maxed;
-            document.getElementById('kpi-adjustments').innerText = adjustments;
+            document.getElementById('kpi-adjustments').innerText = adj;
         }
 
         function renderTable() {
@@ -382,19 +391,18 @@
                 const res = calculateSalary(member);
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
-                tr.setAttribute('data-id', member.id); // 給 Sortable 識別用
+                tr.setAttribute('data-id', member.id);
                 tr.innerHTML = `
                     <td class="px-4 py-4 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1">
                             <div class="drag-handle">⠿</div>
-                            <div class="flex flex-col flex-grow">
-                                <input type="text" value="${member.name}" onchange="window.updateMemberField('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
-                                <button onclick="window.deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 font-bold">刪除</button>
+                            <div class="flex flex-col overflow-hidden">
+                                <input type="text" value="${member.name}" onchange="window.updateMemberField('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600 truncate">
                             </div>
                         </div>
                     </td>
                     <td class="px-4 py-4">
-                        <select onchange="window.updateMemberField('${member.id}', 'pos', this.value)" class="text-[11px] font-bold text-slate-600 bg-slate-100 rounded px-1 py-1 mb-2 block w-full outline-none">
+                        <select onchange="window.updateMemberField('${member.id}', 'pos', this.value)" class="text-[11px] font-bold text-slate-600 bg-slate-100 rounded-lg px-2 py-1 mb-2 block w-full outline-none border border-transparent focus:border-emerald-500">
                             ${POSITIONS.map(p => `<option value="${p}" ${member.pos === p ? 'selected' : ''}>${p}</option>`).join('')}
                         </select>
                         <div class="flex flex-wrap gap-2">
@@ -409,16 +417,16 @@
                     <td class="px-4 py-4">
                         <div class="grid grid-cols-5 gap-1 min-w-[360px]">
                             ${STATIONS.map(s => {
-                                const record = member.stations[s.id];
+                                const rec = member.stations[s.id];
                                 return `
                                 <div class="flex flex-col p-1 bg-slate-50/50 rounded border border-slate-100">
                                     <span class="text-[7px] text-slate-400 font-bold uppercase truncate">${s.name}</span>
                                     <div class="flex gap-0.5">
                                         <select onchange="window.updateStationField('${member.id}', '${s.id}', 'y', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
-                                            <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${record.y == y ? 'selected' : ''}>${y}</option>`).join('')}
+                                            <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${rec.y == y ? 'selected' : ''}>${y}</option>`).join('')}
                                         </select>
                                         <select onchange="window.updateStationField('${member.id}', '${s.id}', 'm', this.value)" class="text-[9px] bg-white border border-slate-200 rounded px-0.5 w-1/2">
-                                            <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${record.m == m ? 'selected' : ''}>${m}</option>`).join('')}
+                                            <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${rec.m == m ? 'selected' : ''}>${m}</option>`).join('')}
                                         </select>
                                     </div>
                                 </div>`;
@@ -432,17 +440,17 @@
                                 ${member.ga ? '<span class="px-1 bg-indigo-100 text-indigo-700 text-[8px] rounded font-bold">工務</span>' : ''}
                                 ${member.mgr ? '<span class="px-1 bg-amber-100 text-amber-700 text-[8px] rounded font-bold">區長</span>' : ''}
                             </div>
-                            <span class="font-bold text-emerald-600">+$${(res.totalSkillAccumulated + res.fixedBonus).toLocaleString()}</span>
+                            <span class="font-bold text-emerald-600">+$${res.accumulatedBonus.toLocaleString()}</span>
                         </div>
                     </td>
-                    <td class="px-4 py-4 text-right bg-slate-100/30 border-x border-slate-100">
-                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.nextTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
+                    <td class="px-4 py-4 text-right bg-slate-100/20 border-x border-slate-100">
+                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.nextTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
                     </td>
-                    <td class="px-4 py-4 text-right bg-emerald-50/50">
-                        ${res.isPublic ? `<span class="font-bold text-emerald-600 text-base">$${res.futureTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
+                    <td class="px-4 py-4 text-right bg-emerald-50/30">
+                        ${res.isPublic ? `<span class="font-bold text-emerald-700 text-base">$${res.futureTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
                     </td>
                     <td class="px-4 py-4 text-center">
-                        ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold whitespace-nowrap tracking-tighter">月薪調升</span>` : `<span class="text-slate-200 text-[10px]">-</span>`}
+                        <button onclick="window.deleteMember('${member.id}')" class="text-red-300 hover:text-red-500 p-2 transition">✕</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -461,33 +469,33 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex items-center gap-2">
-                            <div class="drag-handle text-xl">⠿</div>
+                            <div class="drag-handle text-2xl px-1">⠿</div>
                             <div>
                                 <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-medium">${member.pos}</span>
-                                    ${res.isIncreased ? `<span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
+                                    <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase">${member.pos}</span>
+                                    ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
                                 </div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">${FUTURE_MONTH.m}月 預計實領</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">${FUTURE_MONTH.m}月 預估實領</p>
                             <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.futureTotal.toLocaleString() : '不公開'}</p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-1">
+                    <div class="flex flex-wrap gap-2">
                         ${['fullDay', 'mgr', 'ga'].map(key => `
-                            <button onclick="window.updateMemberField('${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-lg border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-xs text-center transition">
+                            <button onclick="window.updateMemberField('${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-xl border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-[11px] text-center transition shadow-sm">
                                 ${key === 'fullDay' ? '全日 +4k' : key === 'mgr' ? '區長 +500' : '工務 +1k'}
                             </button>
                         `).join('')}
                     </div>
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center justify-between gap-3 pt-1">
                          <div class="flex-grow">
-                             <p class="text-[10px] text-slate-400 font-bold uppercase">累計總加給</p>
-                             <p class="text-sm font-bold text-slate-700">+$${(res.totalSkillAccumulated + res.fixedBonus).toLocaleString()}</p>
+                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">加給累計</p>
+                             <p class="text-sm font-bold text-slate-700">+$${res.accumulatedBonus.toLocaleString()}</p>
                          </div>
-                         <button onclick="window.openStationModal('${member.id}')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl flex items-center gap-2">
+                         <button onclick="window.openStationModal('${member.id}')" class="px-6 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-2xl flex items-center gap-2 active:scale-95 transition">
                              考核編輯 <span class="text-lg">›</span>
                          </button>
                     </div>
@@ -498,32 +506,32 @@
 
         function renderCharts() {
             const ctx = document.getElementById('salaryChart').getContext('2d');
-            const publicData = staffData.filter(s => !LEADERSHIP_ROLES.includes(s.pos)).sort((a,b) => calculateSalary(b).futureTotal - calculateSalary(a).futureTotal);
-            if (publicData.length === 0) return;
-            const labels = publicData.map(s => s.name);
-            const data = publicData.map(s => calculateSalary(s).futureTotal);
+            const pData = staffData.filter(s => !LEADERSHIP_ROLES.includes(s.pos));
+            if (pData.length === 0) return;
+            const labels = pData.map(s => s.name);
+            const data = pData.map(s => calculateSalary(s).futureTotal);
             if (mainChart) mainChart.destroy();
             mainChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: `${FUTURE_MONTH.m}月預計月薪`, data, backgroundColor: '#10b981', borderRadius: 4 }] },
+                data: { labels, datasets: [{ label: `${FUTURE_MONTH.m}月預計薪資`, data, backgroundColor: '#10b981', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: false, min: 35000 } } }
             });
         }
 
         window.openStationModal = (id) => {
             const member = staffData.find(m => m.id === id);
-            document.getElementById('modal-name').innerText = `${member.name} 的考核進度`;
-            const content = document.getElementById('modal-content');
-            content.innerHTML = STATIONS.map(s => {
+            if (!member) return;
+            document.getElementById('modal-name').innerText = `${member.name} 考核進度`;
+            document.getElementById('modal-content').innerHTML = STATIONS.map(s => {
                 const rec = member.stations[s.id];
                 return `
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm">
                         <span class="font-bold text-slate-700 text-sm">${s.name} (+$${s.val})</span>
                         <div class="flex gap-2">
-                            <select onchange="window.updateStationField('${id}', '${s.id}', 'y', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                            <select onchange="window.updateStationField('${id}', '${s.id}', 'y', this.value)" class="bg-white border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold outline-none focus:border-emerald-500">
                                 <option value="">年</option>${YEARS.map(y => `<option value="${y}" ${rec.y == y ? 'selected' : ''}>${y}</option>`).join('')}
                             </select>
-                            <select onchange="window.updateStationField('${id}', '${s.id}', 'm', this.value)" class="bg-white border border-slate-200 rounded-lg px-2 py-2 text-xs">
+                            <select onchange="window.updateStationField('${id}', '${s.id}', 'm', this.value)" class="bg-white border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold outline-none focus:border-emerald-500">
                                 <option value="">月</option>${MONTHS.map(m => `<option value="${m}" ${rec.m == m ? 'selected' : ''}>${m}</option>`).join('')}
                             </select>
                         </div>
@@ -538,12 +546,12 @@
             let csv = "\uFEFF姓名,職位,加給總計," + NEXT_MONTH.m + "月預計," + FUTURE_MONTH.m + "月預計\n";
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                csv += `${m.name},${m.pos},${res.totalSkillAccumulated + res.fixedBonus},${res.isPublic ? res.nextTotal : '不公開'},${res.isPublic ? res.futureTotal : '不公開'}\n`;
+                csv += `${m.name},${m.pos},${res.accumulatedBonus},${res.isPublic ? res.nextTotal : '不公開'},${res.isPublic ? res.futureTotal : '不公開'}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `廚房薪資預估表_${CURRENT_ROC_YEAR}_${CURRENT_MONTH}.csv`);
+            link.setAttribute("download", `廚房薪資表_${today.toLocaleDateString()}.csv`);
             link.click();
         };
 
