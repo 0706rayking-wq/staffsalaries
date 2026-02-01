@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>廚房薪資考核管理系統 - 雲端同步版</title>
+    <title>南港廚房薪資考核管理系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -28,18 +28,18 @@
     <!-- Loading Overlay -->
     <div id="loading" class="loading-overlay">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
-        <p class="text-slate-500 text-sm">正在同步雲端資料庫...</p>
+        <p class="text-slate-500 text-sm font-medium">正在載入雲端資料庫...</p>
     </div>
 
     <!-- Header -->
     <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center font-bold text-lg">薪</div>
-                <h1 class="text-lg font-bold tracking-tight">廚房薪資管理 <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded ml-1">雲端同步版</span></h1>
+                <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center font-bold text-lg text-white">薪</div>
+                <h1 class="text-lg font-bold tracking-tight">廚房薪資管理 <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded ml-1">雲端即時版</span></h1>
             </div>
             <div class="flex gap-2">
-                <button onclick="addNewStaff()" class="p-2 bg-emerald-600 hover:bg-emerald-500 rounded text-sm transition font-bold">＋ 新增員工</button>
+                <button onclick="addNewStaff()" class="p-2 bg-emerald-600 hover:bg-emerald-500 rounded text-sm transition font-bold">＋ 新增</button>
                 <button onclick="exportCSV()" class="p-2 bg-slate-700 rounded text-sm desktop-only">匯出 CSV</button>
             </div>
         </div>
@@ -50,35 +50,41 @@
         <!-- KPI Cards -->
         <section class="flex overflow-x-auto gap-4 pb-2 no-scrollbar snap-x">
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">下月預計總支出</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest"><span class="future-month-name">--</span>月預計支出總額</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-total-pay">$0</h3>
+                <p class="text-slate-400 text-[10px] mt-1 italic">僅統計正職人員</p>
             </div>
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-emerald-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">下月預計平均</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest"><span class="next-month-name">--</span>月預計平均薪資</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-avg-pay">$0</h3>
                 <p class="text-[10px] text-slate-400" id="kpi-avg-count">基於 0 人</p>
             </div>
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-sky-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">考核加給達標</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">加給累計滿額人數</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-maxed">0</h3>
+                <p class="text-[10px] text-slate-400">技能加給達 $4,000 上限</p>
             </div>
             <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-amber-500 snap-center">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">下月預計調薪</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">預計調薪變動人次</p>
                 <h3 class="text-2xl font-bold mt-1 text-slate-800" id="kpi-adjustments">0</h3>
+                <p class="text-slate-400 text-[10px] mt-1">未來兩月內生效件數</p>
             </div>
         </section>
 
         <!-- Charts -->
         <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 預計薪資分佈圖 (僅正職)</h4>
                 <div class="chart-container"><canvas id="salaryChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                <h4 class="font-bold text-slate-700 mb-4 text-sm">雲端同步說明</h4>
-                <div class="p-3 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed space-y-2">
-                    <p><strong>即時存檔：</strong> 所有的修改都會自動同步到 Firebase 雲端資料庫。</p>
-                    <p><strong>跨裝置：</strong> 在手機、平板或不同電腦開啟網址，資料都會是一樣的。</p>
-                    <p><strong>安全性：</strong> 管理職位之預計薪資僅顯示於管理端。</p>
+                <h4 class="font-bold text-slate-700 mb-4 text-sm">調薪自動化說明</h4>
+                <div class="p-4 bg-emerald-50 rounded-lg text-[11px] text-emerald-800 leading-relaxed space-y-3">
+                    <p><strong>📅 系統當前日期：</strong> <span id="current-basis-display" class="font-bold">--</span></p>
+                    <p><strong>💡 調薪規則 (M+2)：</strong><br>依據考核月份後的第二個月自動調整。系統會即時顯示「下個月」與「下下個月」應領薪資，方便成本控管。</p>
+                    <div class="border-t border-emerald-100 pt-2 text-emerald-600">
+                        * 舉例：1月通過考核，則 2月領原薪，3月開始加給。
+                    </div>
                 </div>
             </div>
         </section>
@@ -86,10 +92,9 @@
         <!-- Staff List (Mobile View: Cards, Desktop View: Table) -->
         <section class="bg-white md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <h2 class="text-base font-bold">員工清單與考核狀態</h2>
+                <h2 class="text-base font-bold">員工清單與考核進度</h2>
                 <div class="flex items-center gap-2">
-                    <span id="sync-status" class="text-[10px] font-bold text-emerald-500">● 雲端連線中</span>
-                    <span class="text-[10px] text-slate-400">基準：114年1月</span>
+                    <span id="sync-status" class="text-[10px] font-bold text-emerald-500 animate-pulse">● 雲端同步中</span>
                 </div>
             </div>
             
@@ -98,14 +103,14 @@
             <div class="hidden md:block overflow-x-auto no-scrollbar">
                 <table class="w-full text-left text-sm border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[11px] uppercase tracking-wider">
                             <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名</th>
-                            <th class="px-4 py-4 w-40">職位 / 狀態</th>
+                            <th class="px-4 py-4 w-40">職位 / 狀態項目</th>
                             <th class="px-4 py-4 text-center">各區站考核 (年/月)</th>
-                            <th class="px-4 py-4 text-right w-32">加給彙整</th>
-                            <th class="px-4 py-4 text-right w-24">本月實領</th>
-                            <th class="px-4 py-4 text-right w-24 bg-emerald-50/30">下月預計</th>
-                            <th class="px-4 py-4 w-20 text-center">異動</th>
+                            <th class="px-4 py-4 text-right w-32">目前加給累計</th>
+                            <th class="px-4 py-4 text-right w-28 bg-slate-100/50 text-slate-900 border-x border-slate-200"><span class="next-month-name">--</span>月預計實領</th>
+                            <th class="px-4 py-4 text-right w-28 bg-emerald-50 text-emerald-900"><span class="future-month-name">--</span>月預計實領</th>
+                            <th class="px-4 py-4 w-16 text-center">異動</th>
                         </tr>
                     </thead>
                     <tbody id="staff-table-body" class="divide-y divide-slate-100"></tbody>
@@ -132,11 +137,11 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- ⚠️ 步驟：請在此處貼上你在 Firebase 取得的 Config ---
+        // --- ⚠️ 步驟：貼上 Firebase Config ---
         const firebaseConfig = {
-            apiKey: "AIzaSyCbW_5pInvvC8aJbMn93roWVKyvk1UnVVc", // 貼上你的 apiKey
-            authDomain: "kitchensalary-ac449.firebaseapp.com", // 貼上你的 authDomain
-            projectId: "kitchensalary-ac449", // 貼上你的 projectId
+            apiKey: "AIzaSyCbW_5pInvvC8aJbMn93roWVKyvk1UnVVc", 
+            authDomain: "kitchensalary-ac449.firebaseapp.com", 
+            projectId: "kitchensalary-ac449", 
             storageBucket: "kitchensalary-ac449.firebasestorage.app",
             messagingSenderId: "222432923765",
             appId: "1:222432923765:web:9a4ef1761b7a9c9a60683c"
@@ -147,13 +152,42 @@
         const db = getFirestore(app);
         const appId = "kitchen-salary-nankang";
 
+        // --- 動態日期計算系統 ---
+        const today = new Date();
+        const CURRENT_YEAR = today.getFullYear();
+        const CURRENT_MONTH = today.getMonth() + 1; // 1-12
+        const CURRENT_ROC_YEAR = CURRENT_YEAR - 1911;
+
+        // 計算下個月與後個月的名稱與年份 (Gregorian)
+        function getNextMonthInfo(offset) {
+            let targetMonth = CURRENT_MONTH + offset;
+            let targetYear = CURRENT_YEAR;
+            while (targetMonth > 12) {
+                targetMonth -= 12;
+                targetYear += 1;
+            }
+            return { y: targetYear, m: targetMonth };
+        }
+
+        const NEXT_MONTH = getNextMonthInfo(1);
+        const FUTURE_MONTH = getNextMonthInfo(2);
+
+        // --- 介面文字初始化 ---
+        function initDateLabels() {
+            const nextLabels = document.querySelectorAll('.next-month-name');
+            const futureLabels = document.querySelectorAll('.future-month-name');
+            nextLabels.forEach(el => el.innerText = NEXT_MONTH.m);
+            futureLabels.forEach(el => el.innerText = FUTURE_MONTH.m);
+            
+            const basisDisplay = document.getElementById('current-basis-display');
+            if (basisDisplay) basisDisplay.innerText = `民國 ${CURRENT_ROC_YEAR} 年 ${CURRENT_MONTH} 月`;
+        }
+
         // --- Constants ---
-        const CURRENT_YEAR = 2026;
-        const CURRENT_MONTH = 1;
         const BASE_SALARY = 36000;
         const POSITIONS = ["正職", "副領班", "領班", "副主廚", "主廚", "行政副主廚", "計時人員"];
         const LEADERSHIP_ROLES = ["副領班", "領班", "副主廚", "主廚", "行政副主廚"];
-        const YEARS = [2024, 2025, 2026];
+        const YEARS = [2024, 2025, 2026, 2027];
         const MONTHS = Array.from({length: 12}, (_, i) => i + 1);
         const STATIONS = [
             { id: 'soup', name: '湯區', val: 900 }, { id: 'cook1', name: '熟食一', val: 700 },
@@ -166,27 +200,20 @@
         let staffData = [];
         let mainChart = null;
 
-        // --- Auth & Sync ---
+        // --- Firebase Sync ---
         const initFirebase = async () => {
             try {
-                // 自動使用匿名登入確保連線權限
                 await signInAnonymously(auth);
-                
-                // 監聽雲端資料異動
                 const staffCol = collection(db, 'artifacts', appId, 'public', 'data', 'staff');
                 onSnapshot(staffCol, (snapshot) => {
                     staffData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    // 如果雲端沒資料，初始化預設名單
                     if (staffData.length === 0) seedInitialData();
-                    
                     updateUI();
                     document.getElementById('loading').style.display = 'none';
-                    document.getElementById('sync-status').innerText = "● 雲端同步中";
                 });
             } catch (e) {
                 console.error("Firebase 連線失敗", e);
-                alert("資料庫連線失敗，請檢查 Config 是否正確且安全性規則已設為測試模式。");
+                alert("資料庫連線失敗，請檢查 Config 與安全性規則。");
             }
         };
 
@@ -195,16 +222,14 @@
             for (const name of names) {
                 const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 const member = {
-                    name: name,
-                    pos: "正職",
-                    fullDay: false, mgr: false, ga: false,
+                    name: name, pos: "正職", fullDay: false, mgr: false, ga: false,
                     stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
                 };
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
             }
         };
 
-        // --- Interaction Handlers (Cloud) ---
+        // --- Interaction ---
         window.updateMemberField = async (id, field, value) => {
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'staff', id);
             await updateDoc(docRef, { [field]: value });
@@ -223,9 +248,7 @@
             if (name && name.trim()) {
                 const id = "ID_" + Math.random().toString(36).substr(2, 9);
                 const member = {
-                    name: name,
-                    pos: "正職",
-                    fullDay: false, mgr: false, ga: false,
+                    name: name, pos: "正職", fullDay: false, mgr: false, ga: false,
                     stations: STATIONS.reduce((acc, s) => ({ ...acc, [s.id]: { y: null, m: null } }), {})
                 };
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id), member);
@@ -233,12 +256,10 @@
         };
 
         window.deleteMember = async (id) => {
-            if (confirm("確定要刪除此同仁嗎？資料將從雲端移除。")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id));
-            }
+            if (confirm("確定要刪除？")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'staff', id));
         };
 
-        // --- Calculations ---
+        // --- Calculations (M+2 Logic) ---
         function calculateSalary(member) {
             const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
             let fixedBonus = 0;
@@ -246,35 +267,40 @@
             if (member.mgr) fixedBonus += 500;
             if (member.ga) fixedBonus += 1000;
 
-            let currentSkillSum = 0, nextSkillSum = 0, targetSkillSum = 0;
-            const currentTotalMonths = CURRENT_YEAR * 12 + CURRENT_MONTH;
-            const nextTotalMonths = currentTotalMonths + 1;
+            let nextSkillSum = 0;       // 下月應領
+            let futureSkillSum = 0;     // 後月應領
+            let targetSkillSum = 0;     // 已考取總額
+            
+            const nextTotalMonths = NEXT_MONTH.y * 12 + NEXT_MONTH.m;
+            const futureTotalMonths = FUTURE_MONTH.y * 12 + FUTURE_MONTH.m;
 
             STATIONS.forEach(s => {
                 const record = member.stations[s.id];
                 if (record && record.y && record.m) {
                     const passTotalMonths = parseInt(record.y) * 12 + parseInt(record.m);
-                    const effectiveMonths = passTotalMonths + 2;
+                    const effectiveMonths = passTotalMonths + 2; // M+2 Rule
+
                     targetSkillSum += s.val;
-                    if (effectiveMonths <= currentTotalMonths) currentSkillSum += s.val;
                     if (effectiveMonths <= nextTotalMonths) nextSkillSum += s.val;
+                    if (effectiveMonths <= futureTotalMonths) futureSkillSum += s.val;
                 }
             });
 
-            const currentSkillBonus = Math.min(currentSkillSum, 4000);
             const nextSkillBonus = Math.min(nextSkillSum, 4000);
+            const futureSkillBonus = Math.min(futureSkillSum, 4000);
             const totalSkillAccumulated = Math.min(targetSkillSum, 4000);
 
             return { 
-                currentTotal: BASE_SALARY + fixedBonus + currentSkillBonus, 
                 nextTotal: BASE_SALARY + fixedBonus + nextSkillBonus, 
-                fixedBonus, currentSkillBonus, nextSkillBonus, totalSkillAccumulated,
-                isPublic, isIncreased: nextSkillBonus > currentSkillBonus
+                futureTotal: BASE_SALARY + fixedBonus + futureSkillBonus, 
+                fixedBonus, nextSkillBonus, futureSkillBonus, totalSkillAccumulated,
+                isPublic, isIncreased: futureSkillBonus > nextSkillBonus
             };
         }
 
         // --- UI Rendering ---
         function updateUI() {
+            initDateLabels();
             renderKPIs();
             renderTable();
             renderCards();
@@ -282,15 +308,15 @@
         }
 
         function renderKPIs() {
-            let nextTotal = 0, maxed = 0, publicCount = 0, adjustments = 0;
+            let futureTotal = 0, maxed = 0, publicCount = 0, adjustments = 0;
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                if (res.isPublic) { nextTotal += res.nextTotal; publicCount++; }
+                if (res.isPublic) { futureTotal += res.futureTotal; publicCount++; }
                 if (res.totalSkillAccumulated >= 4000) maxed++;
                 if (res.isIncreased) adjustments++;
             });
-            document.getElementById('kpi-total-pay').innerText = `$${nextTotal.toLocaleString()}`;
-            document.getElementById('kpi-avg-pay').innerText = publicCount > 0 ? `$${Math.round(nextTotal / publicCount).toLocaleString()}` : "$0";
+            document.getElementById('kpi-total-pay').innerText = `$${futureTotal.toLocaleString()}`;
+            document.getElementById('kpi-avg-pay').innerText = publicCount > 0 ? `$${Math.round(futureTotal / publicCount).toLocaleString()}` : "$0";
             document.getElementById('kpi-avg-count').innerText = `基於 ${publicCount} 名正職預估`;
             document.getElementById('kpi-maxed').innerText = maxed;
             document.getElementById('kpi-adjustments').innerText = adjustments;
@@ -308,7 +334,7 @@
                     <td class="px-4 py-4 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                         <div class="flex flex-col">
                             <input type="text" value="${member.name}" onchange="window.updateMemberField('${member.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-emerald-600">
-                            <button onclick="window.deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 uppercase font-bold tracking-tighter">刪除</button>
+                            <button onclick="window.deleteMember('${member.id}')" class="text-[9px] text-red-300 hover:text-red-500 text-left mt-1 font-bold">刪除</button>
                         </div>
                     </td>
                     <td class="px-4 py-4">
@@ -353,14 +379,14 @@
                             <span class="font-bold text-emerald-600">+$${(res.totalSkillAccumulated + res.fixedBonus).toLocaleString()}</span>
                         </div>
                     </td>
-                    <td class="px-4 py-4 text-right">
-                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.currentTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
+                    <td class="px-4 py-4 text-right bg-slate-100/30 border-x border-slate-100">
+                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.nextTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
                     </td>
-                    <td class="px-4 py-4 text-right bg-emerald-50/30">
-                        ${res.isPublic ? `<span class="font-bold text-slate-900 text-base">$${res.nextTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
+                    <td class="px-4 py-4 text-right bg-emerald-50/50">
+                        ${res.isPublic ? `<span class="font-bold text-emerald-600 text-base">$${res.futureTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-xs">不公開</span>`}
                     </td>
                     <td class="px-4 py-4 text-center">
-                        ${res.isIncreased ? `<span class="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-700 font-bold whitespace-nowrap">下月調薪</span>` : `<span class="text-slate-300 text-[10px]">-</span>`}
+                        ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold whitespace-nowrap tracking-tighter">月薪調升</span>` : `<span class="text-slate-200 text-[10px]">-</span>`}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -381,12 +407,12 @@
                             <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
                             <div class="flex items-center gap-2 mt-1">
                                 <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-medium">${member.pos}</span>
-                                ${res.isIncreased ? `<span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold uppercase">下月調薪</span>` : ''}
+                                ${res.isIncreased ? `<span class="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">下月預計</p>
-                            <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.nextTotal.toLocaleString() : '不公開'}</p>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">${FUTURE_MONTH.m}月 預計實領</p>
+                            <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.futureTotal.toLocaleString() : '不公開'}</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2 mt-1">
@@ -398,7 +424,7 @@
                     </div>
                     <div class="flex items-center justify-between gap-3">
                          <div class="flex-grow">
-                             <p class="text-[10px] text-slate-400 font-bold uppercase">加給彙整</p>
+                             <p class="text-[10px] text-slate-400 font-bold uppercase">累計總加給</p>
                              <p class="text-sm font-bold text-slate-700">+$${(res.totalSkillAccumulated + res.fixedBonus).toLocaleString()}</p>
                          </div>
                          <button onclick="window.openStationModal('${member.id}')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl flex items-center gap-2">
@@ -412,14 +438,14 @@
 
         function renderCharts() {
             const ctx = document.getElementById('salaryChart').getContext('2d');
-            const publicData = staffData.filter(s => !LEADERSHIP_ROLES.includes(s.pos)).sort((a,b) => calculateSalary(b).nextTotal - calculateSalary(a).nextTotal);
+            const publicData = staffData.filter(s => !LEADERSHIP_ROLES.includes(s.pos)).sort((a,b) => calculateSalary(b).futureTotal - calculateSalary(a).futureTotal);
             if (publicData.length === 0) return;
             const labels = publicData.map(s => s.name);
-            const data = publicData.map(s => calculateSalary(s).nextTotal);
+            const data = publicData.map(s => calculateSalary(s).futureTotal);
             if (mainChart) mainChart.destroy();
             mainChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: '下月預計月薪', data, backgroundColor: '#10b981', borderRadius: 4 }] },
+                data: { labels, datasets: [{ label: `${FUTURE_MONTH.m}月預計月薪`, data, backgroundColor: '#10b981', borderRadius: 4 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: false, min: 35000 } } }
             });
         }
@@ -449,19 +475,18 @@
         window.closeModal = () => document.getElementById('station-modal').classList.add('hidden');
 
         window.exportCSV = () => {
-            let csv = "\uFEFF姓名,職位,加給總計,本月實領,下月預計\n";
+            let csv = "\uFEFF姓名,職位,加給總計," + NEXT_MONTH.m + "月預計," + FUTURE_MONTH.m + "月預計\n";
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                csv += `${m.name},${m.pos},${res.totalSkillAccumulated + res.fixedBonus},${res.isPublic ? res.currentTotal : '不公開'},${res.isPublic ? res.nextTotal : '不公開'}\n`;
+                csv += `${m.name},${m.pos},${res.totalSkillAccumulated + res.fixedBonus},${res.isPublic ? res.nextTotal : '不公開'},${res.isPublic ? res.futureTotal : '不公開'}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `廚房薪資表.csv`);
+            link.setAttribute("download", `廚房薪資預估表_${CURRENT_ROC_YEAR}_${CURRENT_MONTH}.csv`);
             link.click();
         };
 
-        // 啟動 Firebase 連線
         initFirebase();
     </script>
 </body>
