@@ -234,7 +234,7 @@
                     <div class="relative flex items-center bg-slate-800 rounded-lg px-2 py-1 border border-slate-600 focus-within:border-emerald-500 transition ml-2">
                         <span class="text-slate-400 text-xs mr-2 font-bold">目前分店:</span>
                         <select id="branch-selector" onchange="window.switchBranch(this.value)" class="bg-transparent text-white text-sm font-bold outline-none cursor-pointer pr-4 appearance-none">
-                            <option value="">載入中...</option>
+                            <option value="" class="text-slate-900 bg-white">載入中...</option>
                         </select>
                         <svg class="w-4 h-4 text-slate-400 absolute right-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
@@ -330,16 +330,19 @@
                     <button onclick="window.addRecruitment()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm transition font-bold shadow-sm active:scale-95">＋ 新增面試預約</button>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto no-scrollbar">
+                    <!-- 手機版卡片式排版 -->
+                    <div id="recruitment-cards" class="md:hidden divide-y divide-slate-100"></div>
+                    
+                    <!-- 電腦版表格排版 -->
+                    <div class="hidden md:block overflow-x-auto no-scrollbar">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[11px] uppercase tracking-wider">
-                                    <th class="px-4 py-3 w-32">面試者姓名</th>
-                                    <th class="px-4 py-3 w-48">預約日期與時間</th>
-                                    <th class="px-4 py-3 w-32">面試人員</th>
-                                    <th class="px-4 py-3 w-32">面試結果</th>
-                                    <th class="px-4 py-3">備註</th>
-                                    <th class="px-4 py-3 w-16 text-center">操作</th>
+                                    <th class="px-4 py-3 min-w-[120px] whitespace-nowrap">面試者姓名</th>
+                                    <th class="px-4 py-3 min-w-[180px] whitespace-nowrap">預約日期與時間</th>
+                                    <th class="px-4 py-3 min-w-[120px] whitespace-nowrap">面試人員</th>
+                                    <th class="px-4 py-3 min-w-[120px] whitespace-nowrap">面試結果</th>
+                                    <th class="px-4 py-3 min-w-[250px] whitespace-nowrap">備註</th>
                                 </tr>
                             </thead>
                             <tbody id="recruitment-table-body" class="divide-y divide-slate-100"></tbody>
@@ -355,16 +358,22 @@
                     <button onclick="window.addResignation()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm transition font-bold shadow-sm active:scale-95">＋ 手動新增離職</button>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto no-scrollbar">
+                    <!-- 手機版卡片式排版 -->
+                    <div id="resignation-cards" class="md:hidden divide-y divide-slate-100"></div>
+                    
+                    <!-- 電腦版表格排版 -->
+                    <div class="hidden md:block overflow-x-auto no-scrollbar">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[11px] uppercase tracking-wider">
-                                    <th class="px-4 py-3 w-32">姓名</th>
-                                    <th class="px-4 py-3 w-40">離職日期</th>
-                                    <th class="px-4 py-3 w-28 text-center">勞健保退保</th>
-                                    <th class="px-4 py-3 w-28 text-center">歸還配件</th>
-                                    <th class="px-4 py-3">備註</th>
-                                    <th class="px-4 py-3 w-16 text-center">操作</th>
+                                    <th class="px-4 py-3 min-w-[100px] whitespace-nowrap">姓名</th>
+                                    <th class="px-4 py-3 min-w-[120px] whitespace-nowrap">職位</th>
+                                    <th class="px-4 py-3 min-w-[140px] whitespace-nowrap">離職日期</th>
+                                    <th class="px-4 py-3 min-w-[100px] text-center whitespace-nowrap">勞健保退保</th>
+                                    <th class="px-4 py-3 min-w-[100px] text-center whitespace-nowrap">歸還配件</th>
+                                    <th class="px-4 py-3 min-w-[100px] text-center whitespace-nowrap">歸還識別證</th>
+                                    <th class="px-4 py-3 min-w-[100px] text-center whitespace-nowrap">填寫離職單</th>
+                                    <th class="px-4 py-3 min-w-[250px] whitespace-nowrap">備註</th>
                                 </tr>
                             </thead>
                             <tbody id="resignation-table-body" class="divide-y divide-slate-100"></tbody>
@@ -374,42 +383,49 @@
             </div>
 
             <!-- 模組四：系統設定 -->
-            <div id="section-settings" class="section-container hidden space-y-6 max-w-3xl mx-auto">
-                <div class="mb-6">
+            <div id="section-settings" class="section-container hidden space-y-4 sm:space-y-6 max-w-3xl mx-auto">
+                <div class="mb-4 sm:mb-6">
                     <h2 class="text-xl font-bold text-slate-800">系統與分店設定</h2>
                     <p class="text-sm text-slate-500">修改此處設定將會即時影響計算與顯示。</p>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+
+                <!-- 分店清單管理 (全局設定) -->
+                <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 class="font-bold text-slate-700">🏢 公司分店清單管理 (全系統共用)</h3>
-                        <button onclick="window.addBranch()" class="text-sm px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded font-bold transition shadow active:scale-95">＋ 新增分店</button>
+                        <h3 class="font-bold text-slate-700 text-sm sm:text-base">🏢 公司分店清單管理 (全系統共用)</h3>
+                        <button onclick="window.addBranch()" class="text-xs sm:text-sm px-2 sm:px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded font-bold transition shadow active:scale-95 flex-shrink-0">＋ 新增分店</button>
                     </div>
-                    <div id="settings-branches-list" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2"></div>
-                    <p class="text-[10px] text-slate-400">💡 提示：修改分店名稱或刪除分店後，請務必點擊最下方的「儲存設定」按鈕以同步至雲端。</p>
+                    <div id="settings-branches-list" class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 mb-2"></div>
+                    <p class="text-[10px] text-slate-400 mt-2">💡 提示：修改分店名稱或刪除分店後，請務必點擊最下方的「儲存設定」按鈕以同步至雲端。</p>
                 </div>
-                <div class="bg-slate-800 p-6 rounded-2xl shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-2 h-full bg-emerald-500"></div>
-                    <h3 class="font-bold text-white mb-1 pl-4 text-lg">⚙️ <span class="current-branch-name text-emerald-400">--</span> 專屬薪資參數</h3>
-                    <p class="text-xs text-slate-400 mb-6 pl-4">以下設定僅套用於目前選擇的分店。</p>
-                    <div class="bg-white p-5 rounded-xl shadow-inner mb-4">
-                        <div class="flex items-center gap-4">
+
+                <!-- 單店：底薪與區站設定 -->
+                <div class="bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 sm:w-2 h-full bg-emerald-500"></div>
+                    <h3 class="font-bold text-white mb-1 pl-3 sm:pl-4 text-base sm:text-lg overflow-hidden text-ellipsis whitespace-nowrap">⚙️ <span class="current-branch-name text-emerald-400">--</span> 專屬薪資參數</h3>
+                    <p class="text-xs text-slate-400 mb-4 sm:mb-6 pl-3 sm:pl-4">以下設定僅套用於目前選擇的分店。</p>
+
+                    <div class="bg-white p-3 sm:p-5 rounded-xl shadow-inner mb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                             <label class="text-sm font-bold text-slate-600">該店預設底薪 (正職)：</label>
-                            <div class="relative">
+                            <div class="relative w-full sm:w-auto">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
-                                <input type="number" id="setting-base-salary" onchange="window.updateLocalSettings()" class="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-emerald-700 focus:outline-none focus:border-emerald-500 w-40">
+                                <input type="number" id="setting-base-salary" onchange="window.updateLocalSettings()" class="w-full sm:w-40 pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-emerald-700 focus:outline-none focus:border-emerald-500">
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white p-5 rounded-xl shadow-inner">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2">
+
+                    <div class="bg-white p-3 sm:p-5 rounded-xl shadow-inner">
+                        <div class="flex justify-between items-center mb-3 sm:mb-4 border-b pb-2 gap-2">
                             <h4 class="font-bold text-slate-700 text-sm">該店專屬區站與加給設定</h4>
-                            <button onclick="window.addLocalStation()" class="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold transition active:scale-95">＋ 新增區站</button>
+                            <button onclick="window.addLocalStation()" class="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold transition flex-shrink-0 active:scale-95">＋ 新增區站</button>
                         </div>
                         <div id="settings-stations-list" class="space-y-2"></div>
                     </div>
                 </div>
-                <div class="flex justify-end pt-4 pb-10">
-                    <button onclick="window.saveSettingsToCloud()" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition transform active:scale-95 flex items-center gap-2">
+
+                <div class="flex justify-end pt-2 sm:pt-4 pb-10">
+                    <button onclick="window.saveSettingsToCloud()" class="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                         儲存並套用所有設定
                     </button>
@@ -475,16 +491,14 @@
         ];
 
         let usersData = [];
-        let currentUserData = null; // 當前登入者資訊
+        let currentUserData = null; 
         let loadingState = { staff: false, users: false };
 
-        // 畫面切換控制
         window.switchAppView = (viewId) => {
             document.querySelectorAll('.app-view').forEach(el => el.style.display = 'none');
             const target = document.getElementById(viewId);
             if (target) {
                 target.style.display = target.dataset.display || 'block';
-                // 如果切換到人事部，確保圖表正確渲染
                 if (viewId === 'view-hr' && window.mainChart) {
                     setTimeout(() => window.mainChart.resize(), 100);
                 }
@@ -501,42 +515,51 @@
         // ==========================================
         // 管理平台邏輯：登入/註冊/權限控制
         // ==========================================
-        document.getElementById('form-login').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const phone = document.getElementById('login-phone').value;
-            const user = usersData.find(u => u.phone === phone);
-            if (!user) return alert('找不到此手機號碼，請先註冊。');
-            if (user.status === 'pending') return alert('您的帳號正在等待行政主廚審核中，請稍候再試。');
-            currentUserData = { ...user, role: 'staff' };
-            window.renderUserDashboard();
-            window.switchAppView('view-user-dashboard');
-        });
+        const formLoginEl = document.getElementById('form-login');
+        if(formLoginEl) {
+            formLoginEl.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const phone = document.getElementById('login-phone').value;
+                const user = usersData.find(u => u.phone === phone);
+                if (!user) return alert('找不到此手機號碼，請先註冊。');
+                if (user.status === 'pending') return alert('您的帳號正在等待行政主廚審核中，請稍候再試。');
+                currentUserData = { ...user, role: 'staff' };
+                window.renderUserDashboard();
+                window.switchAppView('view-user-dashboard');
+            });
+        }
 
-        document.getElementById('form-admin-login').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const pwd = document.getElementById('admin-password').value;
-            if (pwd === '0706') {
-                currentUserData = { role: 'admin', name: '行政主廚', permissions: DEPARTMENTS.map(d=>d.id) };
-                window.renderAdminDashboard();
-                window.switchAppView('view-admin-dashboard');
-            } else {
-                alert('密碼錯誤！');
-            }
-        });
+        const formAdminLoginEl = document.getElementById('form-admin-login');
+        if(formAdminLoginEl) {
+            formAdminLoginEl.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const pwd = document.getElementById('admin-password').value;
+                if (pwd === '0706') {
+                    currentUserData = { role: 'admin', name: '行政主廚', permissions: DEPARTMENTS.map(d=>d.id) };
+                    window.renderAdminDashboard();
+                    window.switchAppView('view-admin-dashboard');
+                } else {
+                    alert('密碼錯誤！');
+                }
+            });
+        }
 
-        document.getElementById('form-register').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('reg-name').value;
-            const phone = document.getElementById('reg-phone').value;
-            if (usersData.find(u => u.phone === phone)) return alert('此手機號碼已註冊過！');
-            try {
-                await setDoc(doc(db, 'artifacts', SHARED_APP_ID, 'public', 'data', 'users', phone), {
-                    phone, name, status: 'pending', permissions: []
-                });
-                alert('註冊成功！請等待行政主廚審核開通權限。');
-                window.switchAppView('view-login');
-            } catch(e) { alert('註冊失敗，請確認網路連線。'); }
-        });
+        const formRegisterEl = document.getElementById('form-register');
+        if(formRegisterEl) {
+            formRegisterEl.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('reg-name').value;
+                const phone = document.getElementById('reg-phone').value;
+                if (usersData.find(u => u.phone === phone)) return alert('此手機號碼已註冊過！');
+                try {
+                    await setDoc(doc(db, 'artifacts', SHARED_APP_ID, 'public', 'data', 'users', phone), {
+                        phone, name, status: 'pending', permissions: []
+                    });
+                    alert('註冊成功！請等待行政主廚審核開通權限。');
+                    window.switchAppView('view-login');
+                } catch(e) { alert('註冊失敗，請確認網路連線。'); }
+            });
+        }
 
         window.logoutUser = () => {
             currentUserData = null;
@@ -578,7 +601,6 @@
                         if (dept.id === 'hr') {
                             window.switchAppView('view-hr');
                         } else if (dept.id === 'kitchen') {
-                            // 點擊廚務中心，開新分頁導引至專屬網址
                             window.open('https://eatjoy.vercel.app/', '_blank');
                         } else {
                             renderOtherDept(dept);
@@ -669,7 +691,7 @@
         }
 
         // ==========================================
-        // 人事部系統邏輯 (直接保留原本的設計與函式)
+        // 人事部系統邏輯 
         // ==========================================
         const today = new Date();
         const CURRENT_YEAR = today.getFullYear();
@@ -1018,7 +1040,7 @@
             }
             window.mainChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: `${FUTURE_MONTH.m}月預計薪資`, data, backgroundColor: '#10b981', borderRadius: 6 }] },
+                data: { labels, datasets: [{ label: `${FUTURE_MONTH.m}月預計薪薪`, data, backgroundColor: '#10b981', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: false, min: Math.max(30000, (globalSettings?.baseSalary || 36000) - 5000) } } }
             });
         }
@@ -1079,6 +1101,7 @@
             link.click();
         };
 
+        // ==================== 模組二：人員招募 ====================
         window.addRecruitment = async () => {
             if(!currentBranchId) return;
             const id = "REC_" + Math.random().toString(36).substr(2, 9);
@@ -1089,13 +1112,22 @@
 
         function renderRecruitmentUI() {
             const tbody = document.getElementById('recruitment-table-body');
-            if(!tbody) return;
+            const cardContainer = document.getElementById('recruitment-cards');
+            if(!tbody || !cardContainer) return;
+            tbody.innerHTML = '';
+            cardContainer.innerHTML = '';
+
             if(recruitmentData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">目前尚無面試預約紀錄</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">目前尚無面試預約紀錄</td></tr>`;
+                cardContainer.innerHTML = `<div class="text-center py-8 text-slate-400">目前尚無面試預約紀錄</div>`;
                 return;
             }
-            tbody.innerHTML = recruitmentData.map(item => `
-                <tr class="hover:bg-slate-50 transition-colors group">
+
+            recruitmentData.forEach(item => {
+                // 桌機版表格
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors group";
+                tr.innerHTML = `
                     <td class="px-4 py-3"><input type="text" value="${item.name || ''}" onchange="window.updateDocField('recruitment', '${item.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-sky-600 border-b border-transparent focus:border-sky-200"></td>
                     <td class="px-4 py-3"><input type="datetime-local" value="${item.datetime || ''}" onchange="window.updateDocField('recruitment', '${item.id}', 'datetime', this.value)" class="bg-transparent w-full text-sm text-slate-600 outline-none cursor-pointer"></td>
                     <td class="px-4 py-3"><input type="text" value="${item.interviewer || ''}" placeholder="安排主管" onchange="window.updateDocField('recruitment', '${item.id}', 'interviewer', this.value)" class="bg-transparent w-full text-sm outline-none"></td>
@@ -1107,12 +1139,44 @@
                             <option value="未錄取" ${item.result === '未錄取' ? 'selected' : ''}>❌ 未錄取</option>
                         </select>
                     </td>
-                    <td class="px-4 py-3"><input type="text" value="${item.notes || ''}" placeholder="筆記/備註" onchange="window.updateDocField('recruitment', '${item.id}', 'notes', this.value)" class="bg-transparent w-full text-sm outline-none text-slate-500"></td>
-                    <td class="px-4 py-3 text-center"><button onclick="window.deleteDocItem('recruitment', '${item.id}', this)" class="text-red-300 hover:text-red-500 transition">✕</button></td>
-                </tr>
-            `).join('');
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${item.notes || ''}" placeholder="筆記/備註" onchange="window.updateDocField('recruitment', '${item.id}', 'notes', this.value)" class="bg-transparent w-full text-sm outline-none text-slate-500 min-w-0">
+                            <button onclick="window.deleteDocItem('recruitment', '${item.id}', this)" class="text-slate-300 hover:text-red-500 transition text-lg flex-shrink-0 px-2" title="刪除">✕</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                // 手機版卡片
+                const card = document.createElement('div');
+                card.className = "p-4 flex flex-col gap-3 bg-white";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow pr-2">
+                            <input type="text" value="${item.name || ''}" onchange="window.updateDocField('recruitment', '${item.id}', 'name', this.value)" class="bg-transparent font-bold focus:outline-none focus:text-sky-600 border-b border-transparent focus:border-sky-200 text-lg w-full min-w-0" placeholder="面試者姓名">
+                        </div>
+                        <button onclick="window.deleteDocItem('recruitment', '${item.id}', this)" class="text-slate-300 hover:text-red-500 transition text-lg flex-shrink-0 px-2" title="刪除">✕</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <input type="datetime-local" value="${item.datetime || ''}" onchange="window.updateDocField('recruitment', '${item.id}', 'datetime', this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-slate-600 outline-none cursor-pointer w-full min-w-0">
+                        <select onchange="window.updateDocField('recruitment', '${item.id}', 'result', this.value)" class="text-sm font-bold rounded-lg px-2 py-1.5 outline-none border border-slate-200 ${item.result === '錄取' ? 'bg-emerald-100 text-emerald-700' : item.result === '未錄取' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'} min-w-0">
+                            <option value="待面試" ${item.result === '待面試' ? 'selected' : ''}>⏳ 待面試</option>
+                            <option value="錄取" ${item.result === '錄取' ? 'selected' : ''}>✅ 錄取</option>
+                            <option value="考慮中" ${item.result === '考慮中' ? 'selected' : ''}>🤔 考慮中</option>
+                            <option value="未錄取" ${item.result === '未錄取' ? 'selected' : ''}>❌ 未錄取</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2 mt-1">
+                        <input type="text" value="${item.interviewer || ''}" placeholder="安排主管" onchange="window.updateDocField('recruitment', '${item.id}', 'interviewer', this.value)" class="bg-slate-50 w-1/3 text-sm outline-none px-3 py-2 rounded-lg border border-slate-200 focus:border-sky-300 min-w-0">
+                        <input type="text" value="${item.notes || ''}" placeholder="筆記/備註" onchange="window.updateDocField('recruitment', '${item.id}', 'notes', this.value)" class="bg-slate-50 w-2/3 text-sm outline-none px-3 py-2 rounded-lg border border-slate-200 focus:border-sky-300 text-slate-500 min-w-0">
+                    </div>
+                `;
+                cardContainer.appendChild(card);
+            });
         }
 
+        // ==================== 模組三：人事異動 ====================
         window.moveToResignation = async (staffId) => {
             const member = staffData.find(m => m.id === staffId);
             if(!member) return;
@@ -1120,7 +1184,7 @@
             const id = "RES_" + Math.random().toString(36).substr(2, 9);
             const batch = writeBatch(db);
             batch.set(doc(db, 'artifacts', SHARED_APP_ID, 'public', 'data', 'resignation', id), {
-                name: member.name, date: resDate, insuranceCancelled: false, equipmentReturned: false, notes: `原職位: ${member.pos}`, branchId: member.branchId || currentBranchId
+                name: member.name, pos: member.pos || '', date: resDate, insuranceCancelled: false, equipmentReturned: false, idCardReturned: false, resignationFormFilled: false, notes: '', branchId: member.branchId || currentBranchId
             });
             batch.delete(doc(db, 'artifacts', SHARED_APP_ID, 'public', 'data', 'staff', staffId));
             await batch.commit();
@@ -1131,32 +1195,92 @@
             if(!currentBranchId) return;
             const id = "RES_" + Math.random().toString(36).substr(2, 9);
             await setDoc(doc(db, 'artifacts', SHARED_APP_ID, 'public', 'data', 'resignation', id), {
-                name: '離職人員', date: today.toISOString().split('T')[0], insuranceCancelled: false, equipmentReturned: false, notes: '', branchId: currentBranchId 
+                name: '離職人員', pos: '正職', date: today.toISOString().split('T')[0], insuranceCancelled: false, equipmentReturned: false, idCardReturned: false, resignationFormFilled: false, notes: '', branchId: currentBranchId 
             });
         };
 
         function renderResignationUI() {
             const tbody = document.getElementById('resignation-table-body');
-            if(!tbody) return;
+            const cardContainer = document.getElementById('resignation-cards');
+            if(!tbody || !cardContainer) return;
+            tbody.innerHTML = '';
+            cardContainer.innerHTML = '';
+
             if(resignationData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">目前尚無離職人員紀錄</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">目前尚無離職人員紀錄</td></tr>`;
+                cardContainer.innerHTML = `<div class="text-center py-8 text-slate-400">目前尚無離職人員紀錄</div>`;
                 return;
             }
-            tbody.innerHTML = resignationData.map(item => `
-                <tr class="hover:bg-slate-50 transition-colors">
+
+            resignationData.forEach(item => {
+                // 桌機版表格
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
                     <td class="px-4 py-3"><input type="text" value="${item.name || ''}" onchange="window.updateDocField('resignation', '${item.id}', 'name', this.value)" class="bg-transparent w-full font-bold focus:outline-none focus:text-amber-600 border-b border-transparent focus:border-amber-200"></td>
-                    <td class="px-4 py-3"><input type="date" value="${item.date || ''}" onchange="window.updateDocField('resignation', '${item.id}', 'date', this.value)" class="bg-transparent w-full text-sm text-slate-600 outline-none cursor-pointer"></td>
+                    <td class="px-4 py-3">
+                        <select onchange="window.updateDocField('resignation', '${item.id}', 'pos', this.value)" class="bg-transparent w-full text-sm font-bold text-slate-600 outline-none cursor-pointer">
+                            <option value="">-</option>
+                            ${POSITIONS.map(p => `<option value="${p}" ${item.pos === p ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="px-4 py-3"><input type="date" value="${item.date || ''}" onchange="window.updateDocField('resignation', '${item.id}', 'date', this.value)" class="bg-transparent w-full text-sm text-slate-600 outline-none cursor-pointer min-w-[110px]"></td>
                     <td class="px-4 py-3 text-center"><input type="checkbox" ${item.insuranceCancelled ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'insuranceCancelled', this.checked)" class="custom-checkbox"></td>
                     <td class="px-4 py-3 text-center"><input type="checkbox" ${item.equipmentReturned ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'equipmentReturned', this.checked)" class="custom-checkbox"></td>
-                    <td class="px-4 py-3"><input type="text" value="${item.notes || ''}" placeholder="其他事項" onchange="window.updateDocField('resignation', '${item.id}', 'notes', this.value)" class="bg-transparent w-full text-sm outline-none text-slate-500"></td>
-                    <td class="px-4 py-3 text-center"><button onclick="window.deleteDocItem('resignation', '${item.id}', this)" class="text-red-300 hover:text-red-500 transition">✕</button></td>
-                </tr>
-            `).join('');
+                    <td class="px-4 py-3 text-center"><input type="checkbox" ${item.idCardReturned ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'idCardReturned', this.checked)" class="custom-checkbox"></td>
+                    <td class="px-4 py-3 text-center"><input type="checkbox" ${item.resignationFormFilled ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'resignationFormFilled', this.checked)" class="custom-checkbox"></td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <input type="text" value="${item.notes || ''}" placeholder="其他事項" onchange="window.updateDocField('resignation', '${item.id}', 'notes', this.value)" class="bg-transparent w-full text-sm outline-none text-slate-500 min-w-0">
+                            <button onclick="window.deleteDocItem('resignation', '${item.id}', this)" class="text-slate-300 hover:text-red-500 transition text-lg flex-shrink-0 px-2" title="刪除">✕</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                // 手機版卡片
+                const card = document.createElement('div');
+                card.className = "p-4 flex flex-col gap-3 bg-white";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow pr-2 flex gap-2">
+                            <input type="text" value="${item.name || ''}" onchange="window.updateDocField('resignation', '${item.id}', 'name', this.value)" class="bg-transparent font-bold focus:outline-none focus:text-amber-600 border-b border-transparent focus:border-amber-200 text-lg w-1/2 min-w-0" placeholder="姓名">
+                            <select onchange="window.updateDocField('resignation', '${item.id}', 'pos', this.value)" class="bg-slate-50 rounded-lg px-2 py-1 text-sm font-bold text-slate-600 outline-none w-1/2 border border-slate-200 min-w-0">
+                                <option value="">職位</option>
+                                ${POSITIONS.map(p => `<option value="${p}" ${item.pos === p ? 'selected' : ''}>${p}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button onclick="window.deleteDocItem('resignation', '${item.id}', this)" class="text-slate-300 hover:text-red-500 transition text-lg flex-shrink-0 px-2" title="刪除">✕</button>
+                    </div>
+                    <div>
+                        <input type="date" value="${item.date || ''}" onchange="window.updateDocField('resignation', '${item.id}', 'date', this.value)" class="bg-transparent w-full text-sm text-slate-600 outline-none cursor-pointer border-b border-slate-200 pb-1 min-w-0">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                            <input type="checkbox" ${item.insuranceCancelled ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'insuranceCancelled', this.checked)" class="custom-checkbox"> 退保
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                            <input type="checkbox" ${item.equipmentReturned ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'equipmentReturned', this.checked)" class="custom-checkbox"> 配件
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                            <input type="checkbox" ${item.idCardReturned ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'idCardReturned', this.checked)" class="custom-checkbox"> 識別證
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                            <input type="checkbox" ${item.resignationFormFilled ? 'checked' : ''} onchange="window.updateDocField('resignation', '${item.id}', 'resignationFormFilled', this.checked)" class="custom-checkbox"> 離職單
+                        </label>
+                    </div>
+                    <div>
+                        <input type="text" value="${item.notes || ''}" placeholder="備註事項..." onchange="window.updateDocField('resignation', '${item.id}', 'notes', this.value)" class="bg-slate-50 w-full text-sm outline-none text-slate-600 px-3 py-2 rounded-lg border border-slate-200 focus:border-amber-300 transition min-w-0">
+                    </div>
+                `;
+                cardContainer.appendChild(card);
+            });
         }
 
+        // ==================== 模組四：系統與分店設定 ====================
         function renderBranchSelector() {
             const selector = document.getElementById('branch-selector');
-            selector.innerHTML = branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            selector.innerHTML = branches.map(b => `<option value="${b.id}" class="text-slate-900 bg-white">${b.name}</option>`).join('');
             if (branches.length > 0 && !branches.find(b => b.id === currentBranchId)) currentBranchId = branches[0].id;
             selector.value = currentBranchId;
         }
@@ -1209,24 +1333,30 @@
         };
 
         function renderSettingsUI() {
-            document.getElementById('settings-branches-list').innerHTML = branches.map(b => `
+            // 1. 渲染全局分店清單
+            const branchListEl = document.getElementById('settings-branches-list');
+            branchListEl.innerHTML = branches.map(b => `
                 <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
-                    <input type="text" value="${b.name}" onchange="window.updateBranchName('${b.id}', this.value)" class="flex-grow bg-white border border-slate-300 rounded px-2 py-1 text-sm font-bold focus:outline-none focus:border-sky-500">
-                    <button onclick="window.removeBranch('${b.id}', this)" class="text-red-400 hover:text-red-600 px-2 font-bold transition" title="移除分店">✕</button>
+                    <input type="text" value="${b.name}" onchange="window.updateBranchName('${b.id}', this.value)" class="min-w-0 flex-grow bg-white border border-slate-300 rounded px-2 py-1 text-sm font-bold focus:outline-none focus:border-sky-500">
+                    <button onclick="window.removeBranch('${b.id}', this)" class="text-red-400 hover:text-red-600 px-2 font-bold transition flex-shrink-0" title="移除分店">✕</button>
                 </div>
             `).join('');
 
+            // 2. 渲染當前分店專屬設定 (底薪與區站)
             if (!localSettings) return;
             document.getElementById('setting-base-salary').value = localSettings.baseSalary || 36000;
-            document.getElementById('settings-stations-list').innerHTML = (localSettings.stations || []).map((s, index) => `
-                <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100 hover:border-emerald-200 transition group">
-                    <span class="text-slate-400 font-bold w-5 text-center text-xs">${index + 1}.</span>
-                    <input type="text" value="${s.name}" onchange="window.updateLocalStation('${s.id}', 'name', this.value)" class="flex-grow bg-white border border-slate-200 rounded px-3 py-1.5 text-sm font-bold focus:outline-none focus:border-emerald-500" placeholder="區站名稱">
-                    <div class="relative w-28">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
-                        <input type="number" value="${s.val}" onchange="window.updateLocalStation('${s.id}', 'val', this.value)" class="w-full bg-white border border-slate-200 rounded pl-6 pr-2 py-1.5 text-sm font-bold focus:outline-none focus:border-emerald-500 text-emerald-700">
+            
+            const stationListEl = document.getElementById('settings-stations-list');
+            const stData = localSettings.stations || [];
+            stationListEl.innerHTML = stData.map((s, index) => `
+                <div class="flex items-center gap-1.5 sm:gap-3 p-1.5 sm:p-2 bg-slate-50 rounded-lg border border-slate-100 hover:border-emerald-200 transition group overflow-hidden">
+                    <span class="text-slate-400 font-bold w-4 sm:w-5 text-center text-xs flex-shrink-0">${index + 1}.</span>
+                    <input type="text" value="${s.name}" onchange="window.updateLocalStation('${s.id}', 'name', this.value)" class="min-w-0 flex-grow bg-white border border-slate-200 rounded px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-bold focus:outline-none focus:border-emerald-500" placeholder="區站名稱">
+                    <div class="relative w-20 sm:w-28 flex-shrink-0">
+                        <span class="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm">$</span>
+                        <input type="number" value="${s.val}" onchange="window.updateLocalStation('${s.id}', 'val', this.value)" class="min-w-0 w-full bg-white border border-slate-200 rounded pl-5 sm:pl-6 pr-1 sm:pr-2 py-1.5 text-xs sm:text-sm font-bold focus:outline-none focus:border-emerald-500 text-emerald-700">
                     </div>
-                    <button onclick="window.removeLocalStation('${s.id}')" class="text-slate-300 hover:text-red-500 p-1 transition opacity-50 group-hover:opacity-100" title="移除">✕</button>
+                    <button onclick="window.removeLocalStation('${s.id}')" class="text-slate-300 hover:text-red-500 p-1 sm:px-2 transition flex-shrink-0" title="移除">✕</button>
                 </div>
             `).join('');
         }
