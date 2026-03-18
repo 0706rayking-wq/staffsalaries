@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>饗麻饗辣部門管理</title>
+    <title>餐飲集團營運綜合管理系統</title>
     <!-- 引入共用依賴 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -39,7 +39,7 @@
             <div class="bg-gray-800 p-8 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-sky-500"></div>
                 <i class="ph ph-chef-hat text-6xl text-white mx-auto mb-3 block"></i>
-                <h1 class="text-2xl font-bold text-white tracking-wide">饗麻饗辣部門管理OS</h1>
+                <h1 class="text-2xl font-bold text-white tracking-wide">餐飲集團營運系統</h1>
                 <p class="text-gray-300 text-sm mt-1">員工登入入口</p>
             </div>
             <div class="p-8">
@@ -287,20 +287,21 @@
                     </div>
                 </section>
                 <!-- Charts -->
-                <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 <span class="current-branch-name text-emerald-600"></span> 預計薪資分佈</h4>
-                        <div class="chart-container"><canvas id="salaryChart"></canvas></div>
+            <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 <span class="current-branch-name text-emerald-600"></span> 預計薪資分佈</h4>
+                    <div class="chart-container"><canvas id="salaryChart"></canvas></div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
+                    <h4 class="font-bold text-slate-700 mb-4 text-sm">操作提示</h4>
+                    <div class="p-4 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 leading-relaxed space-y-3">
+                        <p><strong>📅 計算基準：</strong> 民國 <span id="current-roc-year">--</span> 年 <span class="current-month">--</span> 月</p>
+                        <p><strong>🏢 多店獨立：</strong><br>目前顯示的是 <span class="current-branch-name font-bold"></span> 的專屬資料。請至上方切換分店。</p>
+                        <p><strong>💡 薪資生效規則：</strong><br>若當月通過考核，本月薪資不加給 (顯示本月5號發放之薪資)，次月薪資才加給。</p>
+                        <p><strong>⚙️ 自訂設定：</strong><br>請至「系統設定」頁籤，調整各店獨有的底薪與區站加給標準。</p>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                        <h4 class="font-bold text-slate-700 mb-4 text-sm">操作提示</h4>
-                        <div class="p-4 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 leading-relaxed space-y-3">
-                            <p><strong>📅 計算基準：</strong> 民國 <span id="current-roc-year">--</span> 年 <span class="current-month">--</span> 月</p>
-                            <p><strong>🏢 多店獨立：</strong><br>目前顯示的是 <span class="current-branch-name font-bold"></span> 的專屬資料。請至上方切換分店。</p>
-                            <p><strong>⚙️ 自訂設定：</strong><br>請至「系統設定」頁籤，調整各店獨有的底薪與區站加給標準。</p>
-                        </div>
-                    </div>
-                </section>
+                </div>
+            </section>
                 <!-- Staff List -->
                 <section class="bg-white md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div id="staff-cards" class="md:hidden divide-y divide-slate-100"></div>
@@ -311,12 +312,12 @@
                                     <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名 (可拖曳)</th>
                                     <th class="px-4 py-4 w-40">職位 / 狀態</th>
                                     <th class="px-4 py-4 text-center">各區站考核 (年/月)</th>
-                                    <th class="px-4 py-4 text-right w-24">加給總計</th>
-                                    <th class="px-4 py-4 text-right w-24 bg-slate-100/30 border-l border-slate-100"><span class="next-month-name">--</span>月 實領</th>
-                                    <th class="px-4 py-4 text-right w-24 bg-emerald-50/50 font-bold text-emerald-900"><span class="future-month-name">--</span>月 實領</th>
-                                    <th class="px-4 py-4 w-24 text-center">操作</th>
-                                </tr>
-                            </thead>
+                                <th class="px-4 py-4 text-right w-24">加給總計</th>
+                                <th class="px-4 py-4 text-right w-24 bg-slate-100/30 border-l border-slate-100">本月薪資</th>
+                                <th class="px-4 py-4 text-right w-24 bg-emerald-50/50 font-bold text-emerald-900">次月應領</th>
+                                <th class="px-4 py-4 w-24 text-center">操作</th>
+                            </tr>
+                        </thead>
                             <tbody id="staff-table-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
@@ -832,6 +833,7 @@
             await deleteDoc(doc(db, 'artifacts', SHARED_APP_ID, 'public', 'data', collectionName, id));
         };
 
+        // ==================== 模組一：薪資考核 ====================
         function calculateSalary(member) {
             const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
             let fixedBonus = 0;
@@ -839,32 +841,38 @@
             if (member.mgr) fixedBonus += 500;
             if (member.ga) fixedBonus += 1000;
 
-            let nextSkillSum = 0, futureSkillSum = 0, totalSkillSum = 0;
-            const nextVal = NEXT_MONTH.y * 12 + NEXT_MONTH.m;
-            const futureVal = FUTURE_MONTH.y * 12 + FUTURE_MONTH.m;
+            const lastMonthVal = CURRENT_MONTH === 1 ? (CURRENT_YEAR - 1) * 12 + 12 : CURRENT_YEAR * 12 + (CURRENT_MONTH - 1);
+            const thisMonthVal = CURRENT_YEAR * 12 + CURRENT_MONTH;
+
+            let col1SkillSum = 0, col2SkillSum = 0, totalSkillSum = 0;
 
             if (globalSettings && globalSettings.stations) {
                 globalSettings.stations.forEach(s => {
                     const rec = member.stations?.[s.id];
                     if (rec && rec.y && rec.m) {
                         const passVal = parseInt(rec.y) * 12 + parseInt(rec.m);
-                        const effectiveVal = passVal + 2; 
+                        
+                        // 薪資生效邏輯：N月通過考核，本月薪資不加給，次月薪資才加給
+                        const effectiveVal = passVal + 1; 
+                        
                         totalSkillSum += Number(s.val);
-                        if (effectiveVal <= nextVal) nextSkillSum += Number(s.val);
-                        if (effectiveVal <= futureVal) futureSkillSum += Number(s.val);
+                        if (effectiveVal <= lastMonthVal) col1SkillSum += Number(s.val);
+                        if (effectiveVal <= thisMonthVal) col2SkillSum += Number(s.val);
                     }
                 });
             }
-            const nBonus = Math.min(nextSkillSum, 4000);
-            const fBonus = Math.min(futureSkillSum, 4000);
+
+            const cBonus = Math.min(col1SkillSum, 4000);
+            const nBonus = Math.min(col2SkillSum, 4000);
             const aBonus = Math.min(totalSkillSum, 4000);
             const base = globalSettings ? Number(globalSettings.baseSalary) : 0;
 
             return {
-                nextTotal: base + fixedBonus + nBonus,
-                futureTotal: base + fixedBonus + fBonus,
+                thisMonthTotal: base + fixedBonus + cBonus,
+                nextMonthTotal: base + fixedBonus + nBonus,
                 accumulatedBonus: aBonus + fixedBonus,
-                isPublic, isIncreased: fBonus > nBonus
+                isPublic, 
+                isIncreased: nBonus > cBonus
             };
         }
 
@@ -880,7 +888,7 @@
             let fTotal = 0, maxed = 0, pCount = 0, adj = 0;
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                if (res.isPublic) { fTotal += res.futureTotal; pCount++; }
+                if (res.isPublic) { fTotal += res.nextMonthTotal; pCount++; }
                 if ((res.accumulatedBonus - (m.fullDay?4000:0) - (m.mgr?500:0) - (m.ga?1000:0)) >= 4000) maxed++;
                 if (res.isIncreased) adj++;
             });
@@ -957,10 +965,10 @@
                         </div>
                     </td>
                     <td class="px-4 py-4 text-right bg-slate-100/20 border-l border-slate-100">
-                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.nextTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
+                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.thisMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
                     </td>
                     <td class="px-4 py-4 text-right bg-emerald-50/30">
-                        ${res.isPublic ? `<span class="font-bold text-emerald-700 text-base">$${res.futureTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
+                        ${res.isPublic ? `<span class="font-bold text-emerald-700 text-base">$${res.nextMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
                     </td>
                     <td class="px-4 py-4 text-center space-y-2">
                         <button onclick="window.moveToResignation('${member.id}')" class="text-[10px] px-2 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded font-bold block w-full transition">辦理離職</button>
@@ -987,17 +995,17 @@
                             <div>
                                 <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase">${member.pos}</span>
-                                    ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">${FUTURE_MONTH.m}月 預估實領</p>
-                            <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.futureTotal.toLocaleString() : '不公開'}</p>
+                            <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase">${member.pos}</span>
+                            ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2">
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">次月應領</p>
+                    <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
                         ${['fullDay', 'mgr', 'ga'].map(key => `
                             <button onclick="window.updateDocField('staff', '${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-xl border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-[11px] text-center transition shadow-sm">
                                 ${key === 'fullDay' ? '全日 +4k' : key === 'mgr' ? '區長 +500' : '工務 +1k'}
@@ -1033,14 +1041,16 @@
             }
 
             const labels = pData.map(s => s.name);
-            const data = pData.map(s => calculateSalary(s).futureTotal);
+            const data = pData.map(s => calculateSalary(s).nextMonthTotal);
             
             if (window.mainChart) {
                 window.mainChart.destroy();
+                window.mainChart = null; // 安全性修正：確保銷毀後指標指向 null
             }
+            
             window.mainChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: `${FUTURE_MONTH.m}月預計薪薪`, data, backgroundColor: '#10b981', borderRadius: 6 }] },
+                data: { labels, datasets: [{ label: `次月應領薪資`, data, backgroundColor: '#10b981', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { beginAtZero: false, min: Math.max(30000, (globalSettings?.baseSalary || 36000) - 5000) } } }
             });
         }
@@ -1090,10 +1100,11 @@
 
         window.exportCSV = () => {
             const branchName = branches.find(b => b.id === currentBranchId)?.name || '未知分店';
-            let csv = `\uFEFF${branchName} - 員工薪資表\n姓名,職位,加給總計,${NEXT_MONTH.m}月預計,${FUTURE_MONTH.m}月預計\n`;
+            let csv = `\uFEFF${branchName} - 員工薪資表\n`;
+            csv += "姓名,職位,加給總計,本月薪資,次月應領\n";
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                csv += `${m.name},${m.pos},${res.accumulatedBonus},${res.isPublic ? res.nextTotal : '不公開'},${res.isPublic ? res.futureTotal : '不公開'}\n`;
+                csv += `${m.name},${m.pos},${res.accumulatedBonus},${res.isPublic ? res.thisMonthTotal : '不公開'},${res.isPublic ? res.nextMonthTotal : '不公開'}\n`;
             });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
@@ -1443,4 +1454,3 @@
     </script>
 </body>
 </html>
-
