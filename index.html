@@ -39,7 +39,7 @@
             <div class="bg-gray-800 p-8 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-sky-500"></div>
                 <i class="ph ph-chef-hat text-6xl text-white mx-auto mb-3 block"></i>
-                <h1 class="text-2xl font-bold text-white tracking-wide">EATJOY各部門管理</h1>
+                <h1 class="text-2xl font-bold text-white tracking-wide">餐飲集團營運系統</h1>
                 <p class="text-gray-300 text-sm mt-1">員工登入入口</p>
             </div>
             <div class="p-8">
@@ -297,7 +297,7 @@
                     <div class="p-4 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 leading-relaxed space-y-3">
                         <p><strong>📅 計算基準：</strong> 民國 <span id="current-roc-year">--</span> 年 <span class="current-month">--</span> 月</p>
                         <p><strong>🏢 多店獨立：</strong><br>目前顯示的是 <span class="current-branch-name font-bold"></span> 的專屬資料。請至上方切換分店。</p>
-                        <p><strong>💡 薪資生效規則：</strong><br>若當N月通過考核，顯示N+1當月5號發放之薪資，N+2月薪資才加給。</p>
+                        <p><strong>💡 薪資生效規則：</strong><br>若當月通過考核，本月薪資不加給 (顯示本月5號發放之薪資)，次月薪資才加給。</p>
                         <p><strong>⚙️ 自訂設定：</strong><br>請至「系統設定」頁籤，調整各店獨有的底薪與區站加給標準。</p>
                     </div>
                 </div>
@@ -313,12 +313,12 @@
                                     <th class="px-4 py-4 w-40">職位 / 狀態</th>
                                     <th class="px-4 py-4 text-center">各區站考核 (年/月)</th>
                                 <th class="px-4 py-4 text-right w-24">加給總計</th>
-                                <th class="px-4 py-4 text-right w-24 bg-slate-100/30 border-l border-slate-100">本月5日應發薪資</th>
-                                <th class="px-4 py-4 text-right w-24 bg-emerald-50/50 font-bold text-emerald-900">次月5日應發薪資</th>
+                                <th class="px-4 py-4 text-right min-w-[130px] bg-slate-100/50 border-l border-slate-200">本月5日應發薪資</th>
+                                <th class="px-4 py-4 text-right min-w-[130px] bg-emerald-50/80 font-bold text-emerald-800">次月5日應發薪資</th>
                                 <th class="px-4 py-4 w-24 text-center">操作</th>
                             </tr>
                         </thead>
-                            <tbody id="staff-table-body" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="staff-table-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </section>
@@ -964,11 +964,11 @@
                             <span class="font-bold text-emerald-600">+$${res.accumulatedBonus.toLocaleString()}</span>
                         </div>
                     </td>
-                    <td class="px-4 py-4 text-right bg-slate-100/20 border-l border-slate-100">
-                        ${res.isPublic ? `<span class="font-bold text-slate-700">$${res.thisMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
+                    <td class="px-4 py-4 text-right bg-slate-50/80 border-l border-slate-100 align-middle">
+                        ${res.isPublic ? `<span class="font-bold text-slate-600 text-[15px]">$${res.thisMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
                     </td>
-                    <td class="px-4 py-4 text-right bg-emerald-50/30">
-                        ${res.isPublic ? `<span class="font-bold text-emerald-700 text-base">$${res.nextMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
+                    <td class="px-4 py-4 text-right bg-emerald-50/50 align-middle">
+                        ${res.isPublic ? `<span class="font-bold text-emerald-600 text-[17px]">$${res.nextMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
                     </td>
                     <td class="px-4 py-4 text-center space-y-2">
                         <button onclick="window.moveToResignation('${member.id}')" class="text-[10px] px-2 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded font-bold block w-full transition">辦理離職</button>
@@ -995,17 +995,23 @@
                             <div>
                                 <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
                                 <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase">${member.pos}</span>
-                            ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
+                                    <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase">${member.pos}</span>
+                                    ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 text-right mt-1">
+                            <div class="flex flex-col items-end justify-center">
+                                <p class="text-[10px] text-slate-400 font-bold whitespace-nowrap">本月5日應發</p>
+                                <p class="text-sm font-bold text-slate-500">${res.isPublic ? '$' + res.thisMonthTotal.toLocaleString() : '-'}</p>
+                            </div>
+                            <div class="flex flex-col items-end justify-center border-l pl-3 border-slate-100">
+                                <p class="text-[10px] text-emerald-500 font-bold whitespace-nowrap">次月5日應發</p>
+                                <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase">次月應領</p>
-                    <p class="text-xl font-bold text-emerald-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</p>
-                </div>
-            </div>
-            <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2">
                         ${['fullDay', 'mgr', 'ga'].map(key => `
                             <button onclick="window.updateDocField('staff', '${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-xl border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-[11px] text-center transition shadow-sm">
                                 ${key === 'fullDay' ? '全日 +4k' : key === 'mgr' ? '區長 +500' : '工務 +1k'}
