@@ -217,20 +217,18 @@
         </main>
     </div>
 
-    <!-- ==================== 7. 人事部視圖 (原始 index.html 內容整合) ==================== -->
+    <!-- ==================== 7. 人事部視圖 ==================== -->
     <div id="view-hr" class="app-view" data-display="block" style="display: none;">
         <!-- Header & Navigation -->
         <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center border-b border-slate-700">
                 <div class="flex items-center gap-3">
-                    <!-- 加入返回主系統的按鈕 -->
                     <button onclick="window.backToDashboard()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl transition text-white active:scale-95" title="返回主系統">
                         <i class="ph ph-arrow-left text-xl"></i>
                     </button>
                     <div class="w-8 h-8 bg-red-500 rounded flex items-center justify-center font-bold text-lg text-white shadow-inner">饗</div>
                     <h1 class="text-lg font-bold tracking-tight hidden sm:block">人事部管理系統</h1>
                     
-                    <!-- 分店選擇器 -->
                     <div class="relative flex items-center bg-slate-800 rounded-lg px-2 py-1 border border-slate-600 focus-within:border-emerald-500 transition ml-2">
                         <span class="text-slate-400 text-xs mr-2 font-bold">目前分店:</span>
                         <select id="branch-selector" onchange="window.switchBranch(this.value)" class="bg-transparent text-white text-sm font-bold outline-none cursor-pointer pr-4 appearance-none">
@@ -263,6 +261,7 @@
                         <button onclick="window.exportCSV()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition desktop-only active:scale-95">匯出 CSV</button>
                     </div>
                 </div>
+                
                 <!-- KPI Cards -->
                 <section class="flex overflow-x-auto gap-4 pb-2 no-scrollbar snap-x">
                     <div class="min-w-[240px] flex-shrink-0 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 snap-center">
@@ -286,22 +285,24 @@
                         <p class="text-slate-400 text-[10px] mt-1">兩月內生效件數</p>
                     </div>
                 </section>
+                
                 <!-- Charts -->
-            <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 <span class="current-branch-name text-emerald-600"></span> 預計薪資分佈</h4>
-                    <div class="chart-container"><canvas id="salaryChart"></canvas></div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
-                    <h4 class="font-bold text-slate-700 mb-4 text-sm">操作提示</h4>
-                    <div class="p-4 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 leading-relaxed space-y-3">
-                        <p><strong>📅 計算基準：</strong> 民國 <span id="current-roc-year">--</span> 年 <span class="current-month">--</span> 月</p>
-                        <p><strong>🏢 多店獨立：</strong><br>目前顯示的是 <span class="current-branch-name font-bold"></span> 的專屬資料。請至上方切換分店。</p>
-                        <p><strong>💡 薪資生效規則：</strong><br>若當N月通過考核，顯示N+1當月5號發放之薪資，N+2月薪資才加給。</p>
-                        <p><strong>⚙️ 自訂設定：</strong><br>請至「系統設定」頁籤，調整各店獨有的底薪與區站加給標準。</p>
+                <section class="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-slate-700 mb-4 text-sm"><span class="future-month-name">--</span>月 <span class="current-branch-name text-emerald-600"></span> 預計薪資分佈</h4>
+                        <div class="chart-container"><canvas id="salaryChart"></canvas></div>
                     </div>
-                </div>
-            </section>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center">
+                        <h4 class="font-bold text-slate-700 mb-4 text-sm">操作提示</h4>
+                        <div class="p-4 bg-emerald-50 rounded-xl text-[11px] text-emerald-800 leading-relaxed space-y-3">
+                            <p><strong>📅 計算基準：</strong> 民國 <span id="current-roc-year">--</span> 年 <span class="current-month">--</span> 月</p>
+                            <p><strong>🏢 多店獨立：</strong><br>目前顯示的是 <span class="current-branch-name font-bold"></span> 的專屬資料。請至上方切換分店。</p>
+                            <p><strong>💡 薪資生效規則：</strong><br>若當N月通過考核，顯示N+1當月5號發放之薪資，N+2月薪資才加給。</p>
+                            <p><strong>⚙️ 自訂設定：</strong><br>請至「系統設定」頁籤，調整各店獨有的底薪與區站加給標準。</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Staff List -->
                 <section class="bg-white md:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div id="staff-cards" class="md:hidden divide-y divide-slate-100"></div>
@@ -309,17 +310,17 @@
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10px] uppercase tracking-wider">
-                                    <th class="px-4 py-4 sticky left-0 bg-slate-50 z-10 w-32 min-w-[140px] shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名 (可拖曳)</th>
-                                    <th class="px-4 py-4 w-40 min-w-[120px]">職位 / 狀態</th>
-                                    <th class="px-4 py-4 text-center">各區站考核 (年/月)</th>
-                                    <th class="px-4 py-4 text-right w-24 min-w-[100px]">加給總計</th>
-                                    <th class="px-4 py-4 text-right min-w-[140px] bg-slate-50 border-l border-slate-200">
-                                        <div class="flex flex-col gap-1 items-end">
-                                            <span class="text-rose-500">本月5日應發薪資</span>
-                                            <span class="text-blue-600">次月5日應發薪資</span>
+                                    <th class="px-3 py-3 sticky left-0 bg-slate-50 z-10 w-28 min-w-[120px] shadow-[2px_0_5px_rgba(0,0,0,0.05)]">姓名 (可拖曳)</th>
+                                    <th class="px-3 py-3 w-32 min-w-[110px]">職位 / 狀態</th>
+                                    <th class="px-3 py-3 text-center">各區站考核 (年/月)</th>
+                                    <th class="px-2 py-3 text-right w-16 min-w-[70px]">加給總計</th>
+                                    <th class="px-2 py-3 text-right min-w-[95px] bg-slate-50 border-l border-slate-200">
+                                        <div class="flex flex-col items-end gap-0.5 leading-tight">
+                                            <span class="text-rose-500 text-[10px] font-bold tracking-tighter">本月5日應發薪資</span>
+                                            <span class="text-blue-600 text-[10px] font-bold tracking-tighter">次月5日應發薪資</span>
                                         </div>
                                     </th>
-                                    <th class="px-4 py-4 w-24 min-w-[80px] text-center">操作</th>
+                                    <th class="px-2 py-3 w-14 min-w-[55px] text-center">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="staff-table-body" class="divide-y divide-slate-100"></tbody>
@@ -335,10 +336,7 @@
                     <button onclick="window.addRecruitment()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-sm transition font-bold shadow-sm active:scale-95">＋ 新增面試預約</button>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <!-- 手機版卡片式排版 -->
                     <div id="recruitment-cards" class="md:hidden divide-y divide-slate-100"></div>
-                    
-                    <!-- 電腦版表格排版 -->
                     <div class="hidden md:block overflow-x-auto no-scrollbar">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
@@ -363,10 +361,7 @@
                     <button onclick="window.addResignation()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm transition font-bold shadow-sm active:scale-95">＋ 手動新增離職</button>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <!-- 手機版卡片式排版 -->
                     <div id="resignation-cards" class="md:hidden divide-y divide-slate-100"></div>
-                    
-                    <!-- 電腦版表格排版 -->
                     <div class="hidden md:block overflow-x-auto no-scrollbar">
                         <table class="w-full text-left text-sm border-collapse">
                             <thead>
@@ -394,7 +389,6 @@
                     <p class="text-sm text-slate-500">修改此處設定將會即時影響計算與顯示。</p>
                 </div>
 
-                <!-- 分店清單管理 (全局設定) -->
                 <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
                         <h3 class="font-bold text-slate-700 text-sm sm:text-base">🏢 公司分店清單管理 (全系統共用)</h3>
@@ -404,7 +398,6 @@
                     <p class="text-[10px] text-slate-400 mt-2">💡 提示：修改分店名稱或刪除分店後，請務必點擊最下方的「儲存設定」按鈕以同步至雲端。</p>
                 </div>
 
-                <!-- 單店：底薪與區站設定 -->
                 <div class="bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-lg relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-1.5 sm:w-2 h-full bg-emerald-500"></div>
                     <h3 class="font-bold text-white mb-1 pl-3 sm:pl-4 text-base sm:text-lg overflow-hidden text-ellipsis whitespace-nowrap">⚙️ <span class="current-branch-name text-emerald-400">--</span> 專屬薪資參數</h3>
@@ -934,7 +927,7 @@
                 }).join('') || '';
 
                 tr.innerHTML = `
-                    <td class="px-4 py-4 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)] min-w-[140px]">
+                    <td class="px-3 py-3 sticky left-0 bg-white z-10 border-r border-slate-100 font-bold text-slate-700 shadow-[2px_0_5px_rgba(0,0,0,0.02)] min-w-[120px]">
                         <div class="flex items-center gap-1 w-full">
                             <div class="drag-handle flex-shrink-0">⠿</div>
                             <div class="flex-1 min-w-0">
@@ -942,11 +935,11 @@
                             </div>
                         </div>
                     </td>
-                    <td class="px-4 py-4 min-w-[120px]">
-                        <select onchange="window.updateDocField('staff', '${member.id}', 'pos', this.value)" class="text-[11px] font-bold text-slate-600 bg-slate-100 rounded-lg px-2 py-1 mb-2 block w-full outline-none border border-transparent focus:border-emerald-500">
+                    <td class="px-3 py-3 min-w-[110px]">
+                        <select onchange="window.updateDocField('staff', '${member.id}', 'pos', this.value)" class="text-[11px] font-bold text-slate-600 bg-slate-100 rounded-lg px-2 py-1 mb-1 block w-full outline-none border border-transparent focus:border-emerald-500">
                             ${POSITIONS.map(p => `<option value="${p}" ${member.pos === p ? 'selected' : ''}>${p}</option>`).join('')}
                         </select>
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-1.5">
                             ${['fullDay', 'mgr', 'ga'].map(key => `
                                 <label class="inline-flex items-center text-[10px] cursor-pointer text-slate-500 hover:text-slate-800">
                                     <input type="checkbox" ${member[key] ? 'checked' : ''} onchange="window.updateDocField('staff', '${member.id}', '${key}', this.checked)" class="rounded text-emerald-500 mr-1 custom-checkbox">
@@ -955,30 +948,30 @@
                             `).join('')}
                         </div>
                     </td>
-                    <td class="px-4 py-4">
+                    <td class="px-3 py-3">
                         <div class="grid grid-cols-4 xl:grid-cols-5 gap-2 min-w-[560px] xl:min-w-[680px]">
                             ${stationsHtml}
                         </div>
                     </td>
-                    <td class="px-4 py-4 text-right">
+                    <td class="px-2 py-3 text-right">
                         <div class="flex flex-col items-end">
                             <div class="flex flex-wrap justify-end gap-0.5 mb-1">
                                 ${member.fullDay ? '<span class="px-1 bg-sky-100 text-sky-700 text-[8px] rounded font-bold">全日</span>' : ''}
                                 ${member.ga ? '<span class="px-1 bg-indigo-100 text-indigo-700 text-[8px] rounded font-bold">工務</span>' : ''}
                                 ${member.mgr ? '<span class="px-1 bg-amber-100 text-amber-700 text-[8px] rounded font-bold">區長</span>' : ''}
                             </div>
-                            <span class="font-bold text-emerald-600">+$${res.accumulatedBonus.toLocaleString()}</span>
+                            <span class="font-bold text-emerald-600 text-sm">+$${res.accumulatedBonus.toLocaleString()}</span>
                         </div>
                     </td>
-                    <td class="px-4 py-4 text-right bg-slate-50/50 border-l border-slate-100 align-middle">
-                        <div class="flex flex-col items-end gap-1.5">
-                            ${res.isPublic ? `<span class="font-bold text-rose-500 text-lg tracking-wide">$${res.thisMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
-                            ${res.isPublic ? `<span class="font-bold text-blue-600 text-sm tracking-wide">$${res.nextMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
+                    <td class="px-2 py-3 text-right bg-slate-50/50 border-l border-slate-100 align-middle">
+                        <div class="flex flex-col items-end gap-1">
+                            ${res.isPublic ? `<span class="font-bold text-rose-500 text-[17px] tracking-tight leading-none">$${res.thisMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
+                            ${res.isPublic ? `<span class="font-bold text-blue-600 text-[13px] tracking-tight leading-none mt-1">$${res.nextMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px] mt-1">不公開</span>`}
                         </div>
                     </td>
-                    <td class="px-4 py-4 text-center space-y-2">
-                        <button onclick="window.moveToResignation('${member.id}')" class="text-[10px] px-2 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded font-bold block w-full transition">辦理離職</button>
-                        <button onclick="window.deleteDocItem('staff', '${member.id}', this)" class="text-[10px] text-red-400 hover:text-red-600 block w-full transition">✕ 刪除</button>
+                    <td class="px-2 py-3 text-center space-y-1.5">
+                        <button onclick="window.moveToResignation('${member.id}')" class="text-[10px] px-1 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded font-bold block w-full transition">離職</button>
+                        <button onclick="window.deleteDocItem('staff', '${member.id}', this)" class="text-[10px] text-red-400 hover:text-red-600 block w-full transition">刪除</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
