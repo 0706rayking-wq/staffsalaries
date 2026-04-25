@@ -849,6 +849,9 @@
         // ==================== 模組一：薪資考核 ====================
         function calculateSalary(member) {
             const isPublic = !LEADERSHIP_ROLES.includes(member.pos);
+            // 判斷是否為時薪制人員
+            const isHourly = member.pos === '計時人員' || member.pos === '模範計時';
+            
             let fixedBonus = 0;
             if (member.fullDay) fixedBonus += 4000;
             if (member.mgr) fixedBonus += 500;
@@ -864,8 +867,6 @@
                     const rec = member.stations?.[s.id];
                     if (rec && rec.y && rec.m) {
                         const passVal = parseInt(rec.y) * 12 + parseInt(rec.m);
-                        
-                        // 薪資生效邏輯：N月通過考核，本月薪資不加給，次月薪資才加給
                         const effectiveVal = passVal + 1; 
                         
                         totalSkillSum += Number(s.val);
@@ -878,13 +879,20 @@
             const cBonus = Math.min(col1SkillSum, 4000);
             const nBonus = Math.min(col2SkillSum, 4000);
             const aBonus = Math.min(totalSkillSum, 4000);
-            const base = globalSettings ? Number(globalSettings.baseSalary) : 0;
+            
+            // 根據職位決定基礎薪資 (月薪或時薪)
+            let base = globalSettings ? Number(globalSettings.baseSalary) : 36000;
+            if (member.pos === '計時人員') base = globalSettings?.ptWage || 200;
+            if (member.pos === '模範計時') base = globalSettings?.modelPtWage || 240;
 
             return {
-                thisMonthTotal: base + fixedBonus + cBonus,
-                nextMonthTotal: base + fixedBonus + nBonus,
+                // 如果是時薪人員，本月/次月直接回傳時薪即可，不加總月薪
+                thisMonthTotal: isHourly ? base : base + fixedBonus + cBonus,
+                nextMonthTotal: isHourly ? base : base + fixedBonus + nBonus,
                 accumulatedBonus: aBonus + fixedBonus,
                 isPublic, 
+                isHourly, // 回傳給 UI 判斷用
+                baseWage: base,
                 isIncreased: nBonus > cBonus
             };
         }
@@ -901,7 +909,7 @@
             let fTotal = 0, maxed = 0, pCount = 0, adj = 0;
             staffData.forEach(m => {
                 const res = calculateSalary(m);
-                if (res.isPublic) { fTotal += res.nextMonthTotal; pCount++; }
+                if (res.isPublic && !res.isHourly) { fTotal += res.nextMonthTotal; pCount++; }
                 if ((res.accumulatedBonus - (m.fullDay?4000:0) - (m.mgr?500:0) - (m.ga?1000:0)) >= 4000) maxed++;
                 if (res.isIncreased) adj++;
             });
@@ -981,8 +989,15 @@
                     </td>
                     <td class="px-2 py-3 text-right bg-slate-50/50 border-l border-slate-100 align-middle">
                         <div class="flex flex-col items-end gap-1">
-                            ${res.isPublic ? `<span class="font-bold text-rose-500 text-[17px] tracking-tight leading-none">$${res.thisMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px]">不公開</span>`}
-                            ${res.isPublic ? `<span class="font-bold text-blue-600 text-[13px] tracking-tight leading-none mt-1">$${res.nextMonthTotal.toLocaleString()}</span>` : `<span class="text-slate-300 italic text-[10px] mt-1">不公開</span>`}
+                            ${!res.isPublic ? 
+                                `<span class="text-slate-300 italic text-[10px]">不公開</span><span class="text-slate-300 italic text-[10px] mt-1">不公開</span>` 
+                            : res.isHourly ? 
+                                `<span class="font-bold text-rose-500 text-[16px] tracking-tight leading-none">時薪 $${res.baseWage}</span>
+                                 <span class="font-bold text-slate-500 text-[11px] tracking-tight leading-none mt-1">月加給另計</span>`
+                            : 
+                                `<span class="font-bold text-rose-500 text-[17px] tracking-tight leading-none">$${res.thisMonthTotal.toLocaleString()}</span>
+                                 <span class="font-bold text-blue-600 text-[13px] tracking-tight leading-none mt-1">$${res.nextMonthTotal.toLocaleString()}</span>`
+                            }
                         </div>
                     </td>
                     <td class="px-2 py-3 text-center space-y-1.5">
@@ -1016,16 +1031,26 @@
                             </div>
                         </div>
                         <div class="flex flex-col items-end justify-center bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 min-w-[120px]">
-                            <div class="flex justify-between w-full items-center mb-1">
-                                <span class="text-[10px] text-rose-500 font-bold whitespace-nowrap">本月5日應發</span>
-                                <span class="text-lg font-bold text-rose-500">${res.isPublic ? '$' + res.thisMonthTotal.toLocaleString() : '-'}</span>
-                            </div>
-                            <div class="flex justify-between w-full items-center">
-                                <span class="text-[10px] text-blue-600 font-bold whitespace-nowrap">次月5日應發</span>
-                                <span class="text-xs font-bold text-blue-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</span>
-                            </div>
+                            ${res.isHourly ? `
+                                <div class="flex justify-between w-full items-center mb-1">
+                                    <span class="text-[10px] text-rose-500 font-bold whitespace-nowrap">排班時薪</span>
+                                    <span class="text-lg font-bold text-rose-500">$${res.baseWage}</span>
+                                </div>
+                                <div class="flex justify-between w-full items-center">
+                                    <span class="text-[10px] text-slate-500 font-bold whitespace-nowrap">月加給</span>
+                                    <span class="text-xs font-bold text-slate-500">另計</span>
+                                </div>
+                            ` : `
+                                <div class="flex justify-between w-full items-center mb-1">
+                                    <span class="text-[10px] text-rose-500 font-bold whitespace-nowrap">本月5日應發</span>
+                                    <span class="text-lg font-bold text-rose-500">${res.isPublic ? '$' + res.thisMonthTotal.toLocaleString() : '-'}</span>
+                                </div>
+                                <div class="flex justify-between w-full items-center">
+                                    <span class="text-[10px] text-blue-600 font-bold whitespace-nowrap">次月5日應發</span>
+                                    <span class="text-xs font-bold text-blue-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</span>
+                                </div>
+                            `}
                         </div>
-                    </div>
                     <div class="flex flex-wrap gap-2">
                         ${['fullDay', 'mgr', 'ga'].map(key => `
                             <button onclick="window.updateDocField('staff', '${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-xl border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-[11px] text-center transition shadow-sm">
