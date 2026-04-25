@@ -404,11 +404,27 @@
                     <p class="text-xs text-slate-400 mb-4 sm:mb-6 pl-3 sm:pl-4">以下設定僅套用於目前選擇的分店。</p>
 
                     <div class="bg-white p-3 sm:p-5 rounded-xl shadow-inner mb-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                            <label class="text-sm font-bold text-slate-600">該店預設底薪 (正職)：</label>
-                            <div class="relative w-full sm:w-auto">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
-                                <input type="number" id="setting-base-salary" onchange="window.updateLocalSettings()" class="w-full sm:w-40 pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-emerald-700 focus:outline-none focus:border-emerald-500">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-slate-600">預設底薪 (正職)：</label>
+                                <div class="relative w-full">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
+                                    <input type="number" id="setting-base-salary" onchange="window.updateLocalSettings()" class="w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-emerald-700 focus:outline-none focus:border-emerald-500">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-slate-600">計時人員 (時薪)：</label>
+                                <div class="relative w-full">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
+                                    <input type="number" id="setting-pt-wage" onchange="window.updateLocalSettings()" class="w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sky-700 focus:outline-none focus:border-sky-500">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-slate-600">模範計時 (時薪)：</label>
+                                <div class="relative w-full">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
+                                    <input type="number" id="setting-model-pt-wage" onchange="window.updateLocalSettings()" class="w-full pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-indigo-700 focus:outline-none focus:border-indigo-500">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1329,6 +1345,8 @@
 
         window.updateLocalSettings = () => {
             localSettings.baseSalary = Number(document.getElementById('setting-base-salary').value) || 0;
+            localSettings.ptWage = Number(document.getElementById('setting-pt-wage').value) || 0;
+            localSettings.modelPtWage = Number(document.getElementById('setting-model-pt-wage').value) || 0;
         };
 
         window.addLocalStation = () => {
@@ -1361,6 +1379,8 @@
             // 2. 渲染當前分店專屬設定 (底薪與區站)
             if (!localSettings) return;
             document.getElementById('setting-base-salary').value = localSettings.baseSalary || 36000;
+            document.getElementById('setting-pt-wage').value = localSettings.ptWage || 200;
+            document.getElementById('setting-model-pt-wage').value = localSettings.modelPtWage || 240;
             
             const stationListEl = document.getElementById('settings-stations-list');
             const stData = localSettings.stations || [];
