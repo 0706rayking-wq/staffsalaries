@@ -1016,55 +1016,58 @@
             staffData.forEach((member) => {
                 const res = calculateSalary(member);
                 const card = document.createElement('div');
-                card.className = "p-4 flex flex-col gap-3 bg-white";
+                card.className = "p-4 flex flex-col gap-3.5 bg-white";
                 card.setAttribute('data-id', member.id);
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-center gap-2">
-                            <div class="drag-handle text-2xl px-1">⠿</div>
-                            <div>
-                                <h3 class="font-bold text-lg text-slate-800">${member.name}</h3>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase">${member.pos}</span>
-                                    ${res.isIncreased ? `<span class="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-bold">未來調薪</span>` : ''}
-                                </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <div class="drag-handle text-slate-400 text-xl px-1 flex-shrink-0">⠿</div>
+                            <h3 class="font-bold text-lg text-slate-800 whitespace-nowrap truncate">${member.name}</h3>
+                            <span class="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold uppercase flex-shrink-0">${member.pos}</span>
+                            ${res.isIncreased ? `<span class="text-[10px] px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full font-bold flex-shrink-0">未來調薪</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
+                        ${res.isHourly ? `
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-rose-500 font-bold mb-0.5">排班時薪</span>
+                                <span class="text-lg font-bold text-rose-500">$${res.baseWage}</span>
                             </div>
-                        </div>
-                        <div class="flex flex-col items-end justify-center bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 min-w-[120px]">
-                            ${res.isHourly ? `
-                                <div class="flex justify-between w-full items-center mb-1">
-                                    <span class="text-[10px] text-rose-500 font-bold whitespace-nowrap">排班時薪</span>
-                                    <span class="text-lg font-bold text-rose-500">$${res.baseWage}</span>
-                                </div>
-                                <div class="flex justify-between w-full items-center">
-                                    <span class="text-[10px] text-slate-500 font-bold whitespace-nowrap">月加給</span>
-                                    <span class="text-xs font-bold text-slate-500">另計</span>
-                                </div>
-                            ` : `
-                                <div class="flex justify-between w-full items-center mb-1">
-                                    <span class="text-[10px] text-rose-500 font-bold whitespace-nowrap">本月5日應發</span>
-                                    <span class="text-lg font-bold text-rose-500">${res.isPublic ? '$' + res.thisMonthTotal.toLocaleString() : '-'}</span>
-                                </div>
-                                <div class="flex justify-between w-full items-center">
-                                    <span class="text-[10px] text-blue-600 font-bold whitespace-nowrap">次月5日應發</span>
-                                    <span class="text-xs font-bold text-blue-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</span>
-                                </div>
-                            `}
-                        </div>
-                    <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] text-slate-500 font-bold mb-0.5">月加給</span>
+                                <span class="text-sm font-bold text-slate-500">另計</span>
+                            </div>
+                        ` : `
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-rose-500 font-bold mb-0.5">本月5日應發</span>
+                                <span class="text-lg font-bold text-rose-500">${res.isPublic ? '$' + res.thisMonthTotal.toLocaleString() : '-'}</span>
+                            </div>
+                            <div class="w-px h-8 bg-slate-200 mx-2"></div>
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] text-blue-600 font-bold mb-0.5">次月5日應發</span>
+                                <span class="text-lg font-bold text-blue-600">${res.isPublic ? '$' + res.nextMonthTotal.toLocaleString() : '不公開'}</span>
+                            </div>
+                        `}
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
                         ${['fullDay', 'mgr', 'ga'].map(key => `
-                            <button onclick="window.updateDocField('staff', '${member.id}', '${key}', ${!member[key]})" class="flex-grow py-2 px-3 rounded-xl border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-[11px] text-center transition shadow-sm">
-                                ${key === 'fullDay' ? '全日 +4k' : key === 'mgr' ? '區長 +500' : '工務 +1k'}
+                            <button onclick="window.updateDocField('staff', '${member.id}', '${key}', ${!member[key]})" class="py-2 rounded-xl border ${member[key] ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold' : 'bg-white border-slate-200 text-slate-500'} text-[11px] text-center transition shadow-sm active:scale-95">
+                                ${key === 'fullDay' ? '全日+4k' : key === 'mgr' ? '區長+500' : '工務+1k'}
                             </button>
                         `).join('')}
                     </div>
-                    <div class="flex items-center justify-between gap-3 pt-1">
-                         <div class="flex-grow">
-                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">加給累計</p>
-                             <p class="text-sm font-bold text-slate-700">+$${res.accumulatedBonus.toLocaleString()}</p>
+
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-50 mt-1">
+                         <div class="flex flex-col">
+                             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-tight">加給累計</span>
+                             <span class="text-sm font-bold text-slate-700">+$${res.accumulatedBonus.toLocaleString()}</span>
                          </div>
-                         <button onclick="window.openStationModal('${member.id}')" class="px-5 py-2 bg-slate-100 text-slate-700 text-sm font-bold rounded-2xl flex items-center gap-1 active:scale-95 transition">考核編輯 ›</button>
-                         <button onclick="window.moveToResignation('${member.id}')" class="px-3 py-2 bg-amber-50 text-amber-600 text-sm font-bold rounded-2xl active:scale-95 transition">離職</button>
+                         <div class="flex items-center gap-2">
+                             <button onclick="window.moveToResignation('${member.id}')" class="px-3 py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 text-xs font-bold rounded-xl active:scale-95 transition">離職</button>
+                             <button onclick="window.openStationModal('${member.id}')" class="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 text-xs font-bold rounded-xl flex items-center gap-1 active:scale-95 transition shadow-sm">考核編輯 ›</button>
+                         </div>
                     </div>
                 `;
                 container.appendChild(card);
